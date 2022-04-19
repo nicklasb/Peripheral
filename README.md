@@ -56,6 +56,10 @@ These are settings that might be, and probably is, specific to my setup.
 - Flash SPI mode (QIO)  --->
 - Flash SPI speed (80 MHz)  --->  
 *These were the flash settings that worked for the LoRa32.*
+
+- CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ needs to be 240Mhz. For some reason that isn't the default all the time. 
+- CONFIG_ESP32_XTAL_FREQ needs to be 26 Mhz. The crystal seems to be 26 even though the default is 40 Mhz in the ESP32 menuconfig 
+
 ### Component config 
 
 
