@@ -20,6 +20,8 @@ extern "C"
     /* Creates a semaphore to handle concurrent call to BLE stuff */
     SemaphoreHandle_t xBLESemaphore;
     char task_tag[35];
+
+
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
