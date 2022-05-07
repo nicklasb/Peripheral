@@ -8,6 +8,21 @@
 #include "host/ble_hs_adv.h"
 #include "peer.c"
 
+/**
+ * @brief Handles incoming data
+ * 
+ * @param conn_handle The connection handle of the peer
+ * @param attr_handle The handle of the attribute being sent
+ * @param ctxt Access context information
+ */
+void on_ble_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt) {
+ 
+        ESP_LOGI(task_tag,"In handling callback status!");
+        if (strcmp((char *) (ctxt->om->om_data), (char *)"status") == 0) {
+            ESP_LOGI(task_tag,"Got asked for status!");
+            }
+}
+
 /*
 This is the running task of the peripheral, it currently connects to the server (actually peripheral) and sends data.
 TODO: Instead this will be rewritten competely:
@@ -25,6 +40,8 @@ void ble_client_my_task(void *pvParameters)
     (that might not be possible if not a param here; should a controller init exist?)
    */
     xBLESemaphore = xSemaphoreCreateMutex();
+    on_ble_data_cb = on_ble_data;
+
 
     ESP_LOGI(task_tag, "My Task peripheral: In my task");
 
