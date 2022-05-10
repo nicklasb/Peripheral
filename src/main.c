@@ -19,6 +19,7 @@
  **********************/
 
 #include "ble_task.h"
+#include "ble_init.h"
 /**********************
  *  STATIC PROTOTYPES
  **********************/

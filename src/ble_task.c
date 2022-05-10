@@ -1,5 +1,5 @@
 
-#include "ble_task.h"
+
 #include "esp_log.h"
 #include "host/ble_gatt.h"
 #include "host/ble_hs_mbuf.h"
@@ -9,19 +9,58 @@
 #include "peer.c"
 #include "esp_crc.h"
 
+#include "ble_init.h"
+#include "ble_client.h"
+#include <string.h>
+#include "sdp.h"
+#include "ble_task.h"
+
 /**
- * @brief Handles incoming data
- * 
- * @param conn_handle The connection handle of the peer
- * @param attr_handle The handle of the attribute being sent
- * @param ctxt Access context information
+ * @brief Handle priority messages
+ *
+ * @param queue_item
  */
-void on_ble_data(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt) {
- 
-        ESP_LOGI(task_tag,"In handling callback status!");
-        if (strcmp((char *) (ctxt->om->om_data), (char *)"status") == 0) {
-            ESP_LOGI(task_tag,"Got asked for status!");
-            }
+void on_priority(struct work_queue_item queue_item)
+{
+
+    ESP_LOGI(task_tag, "In ble data callback on the controller!");
+    if (strcmp((char *)(queue_item.data), (char *)"status") == 0)
+    {
+        ESP_LOGI(task_tag, "Got asked for status!");
+    }
+}
+
+/**
+ * @brief Takes a closer look on the incoming request queue item, does it need urgent attention?
+ *
+ * @param queue_item
+ */
+void on_request(struct work_queue_item queue_item)
+{
+
+    ESP_LOGI(task_tag, "In ble data callback on the controller!");
+    if (strcmp((char *)(queue_item.data), (char *)"status") == 0)
+    {
+        ESP_LOGI(task_tag, "Got asked for status!");
+    }
+}
+
+/**
+ * @brief Takes a closer look on the incoming request queue item, does it need urgent attention?
+ *
+ * @param queue_item
+ */
+void on_data(struct work_queue_item queue_item)
+{
+
+    if (queue_item.work_type == PRIORITY)
+    {
+    }
+    ESP_LOGI(task_tag, "In ble data callback on the controller!");
+    if (strcmp((char *)(queue_item.data), (char *)"status") == 0)
+    {
+        ESP_LOGI(task_tag, "Got asked for status!");
+    }
 }
 
 /*
@@ -40,9 +79,10 @@ void ble_client_my_task(void *pvParameters)
    TODO: Consider if there instead should be one for Core 0
     (that might not be possible if not a param here; should a controller init exist?)
    */
-    xBLESemaphore = xSemaphoreCreateMutex();
-    on_ble_data_cb = on_ble_data;
-
+    xBLE_Comm_Semaphore = xSemaphoreCreateMutex();
+    on_request_cb = on_request;
+    on_data_cb = on_data;
+    on_priority_cb = on_priority;
 
     ESP_LOGI(task_tag, "My Task peripheral: In my task");
 
@@ -80,7 +120,7 @@ void ble_client_my_task(void *pvParameters)
 
             
 
-            if (pdTRUE == xSemaphoreTake(xBLESemaphore, portMAX_DELAY))
+            if (pdTRUE == xSemaphoreTake(xBLE_Comm_Semaphore, portMAX_DELAY))
             {
 
                 ret = ble_gattc_write_flat(curr_peer->conn_handle, ble_spp_svc_gatt_read_val_handle, &myarray, sizeof(myarray), NULL, NULL);
@@ -92,7 +132,7 @@ void ble_client_my_task(void *pvParameters)
                 {
                     ESP_LOGI(task_tag, "My Task peripheral: Error writing flat data, error: %i", ret);
                 }
-                xSemaphoreGive(xBLESemaphore);
+                xSemaphoreGive(xBLE_Comm_Semaphore);
             }
             else
             {
