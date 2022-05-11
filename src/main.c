@@ -18,8 +18,9 @@
  *  INCLUDES
  **********************/
 
-#include "ble_task.h"
-#include "ble_init.h"
+#include "sdp.h"
+#include "sdp_task.h"
+
 /**********************
  *  STATIC PROTOTYPES
  **********************/
@@ -28,6 +29,6 @@
  *   APPLICATION MAIN
  **********************/
 void app_main() {
-    ble_init("Peri\0", ble_client_my_task, false);
+    sdp_init(do_on_work, do_on_priority, "Peripheral\0", false);
 
 }
