@@ -52,10 +52,9 @@ void do_on_work(struct work_queue_item *queue_item)
     /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
     ESP_LOGI(log_prefix, "In do_on_work task, responding to the controller. Conversation id = %u", queue_item->conversation_id);
     char data[17] = "response\0testdata";
-    
-    sdp_reply(*queue_item, DATA,  &data, sizeof(data));
-    /* Important to always free the queue item! */
-    
+
+    sdp_reply(*queue_item, DATA, &data, sizeof(data));
+
     /* Always call the cleanup crew when done */
     cleanup_queue_task(queue_item);
 }
