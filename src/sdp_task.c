@@ -55,6 +55,7 @@ void do_on_work(struct work_queue_item *queue_item)
     
     sdp_reply(*queue_item, DATA,  &data, sizeof(data));
     /* Important to always free the queue item! */
-    free(queue_item);
-    vTaskDelete(NULL);
+    
+    /* Always call the cleanup crew when done */
+    cleanup_queue_task(queue_item);
 }
