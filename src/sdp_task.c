@@ -108,6 +108,7 @@ void do_on_work(struct work_queue_item *queue_item)
     else
     {
         sdp_reply(*queue_item, DATA, reply_data, reply_length);
+        free(reply_data);
     }
 
     /* Always call the cleanup crew when done */
