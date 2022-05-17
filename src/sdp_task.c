@@ -47,40 +47,10 @@ void do_on_priority(struct work_queue_item *work_item)
     }
 }
 
-char *get_state(void)
+
+int make_status_message(uint8_t **message)
 {
-    // TODO: Will a peer have other states? As "shuttingdown", "rebooting", "savingpower" or similar?
-    char *state = NULL;
-    asprintf(&state, "running");
-    return state;
-}
-
-char *get_memory(void)
-{
-
-    char *memory_str = NULL;
-    asprintf(&memory_str, "%i", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-    return memory_str;
-}
-
-char *get_uptime(void)
-{
-
-    int64_t uptime = esp_timer_get_time();
-
-    char *uptime_str = NULL;
-    asprintf(&uptime_str, "%lld", uptime);
-    return uptime_str;
-}
-
-void make_status_message(uint8_t **message, int *datalength)
-{
-
-    *datalength = 0;
-
-    add_to_message(message, datalength, get_state());
-    add_to_message(message, datalength, get_uptime());
-    add_to_message(message, datalength, get_memory());
+    return add_to_message(message, "%s|%lld|%i", "running", esp_timer_get_time(), heap_caps_get_free_size(MALLOC_CAP_8BIT));
 }
 
 void do_on_work(struct work_queue_item *queue_item)
@@ -95,8 +65,8 @@ void do_on_work(struct work_queue_item *queue_item)
     int reply_length = 0;
     if (strcmp((char *)(queue_item->parts[0]), "status") == 0)
     {
-        ESP_LOGI(log_prefix, "Match");
-        make_status_message(&reply_data, &reply_length);
+        ESP_LOGI(log_prefix, "Is it a status message");
+        reply_length = make_status_message(&reply_data);
     }
 
     /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
