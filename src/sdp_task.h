@@ -19,6 +19,9 @@ extern "C"
     * GLOBAL PROTOTYPES
     **********************/
 
+   void init_sensors();
+
+
    /* Tasks for handling work items */
    void do_on_priority(struct work_queue_item *queue_item);
    void do_on_work(struct work_queue_item *queue_item);

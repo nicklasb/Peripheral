@@ -3,7 +3,11 @@
 
 #include "sdp.h"
 #include "sdp_helpers.h"
+#include "sensor_ds1603l.h"
+
 #include "sdp_task.h"
+
+
 
 /**
  * @brief Takes a closer look on the incoming request queue item, does it need urgent attention?
@@ -50,7 +54,18 @@ void do_on_priority(struct work_queue_item *work_item)
 
 int make_status_message(uint8_t **message)
 {
-    return add_to_message(message, "%s|%lld|%i", "running", esp_timer_get_time(), heap_caps_get_free_size(MALLOC_CAP_8BIT));
+    return add_to_message(message, "%s|%.1f seconds|%i bytes|%.2f C", 
+    "running", 
+    (float)esp_timer_get_time()/1000000, 
+    heap_caps_get_free_size(MALLOC_CAP_8BIT),0.5);
+}
+
+
+int make_sensors_message(uint8_t **message)
+{
+
+    // Collect sensor data
+    return add_to_message(message, "%i mm", read_sd1603l());
 }
 
 void do_on_work(struct work_queue_item *queue_item)
@@ -67,13 +82,18 @@ void do_on_work(struct work_queue_item *queue_item)
     {
         ESP_LOGI(log_prefix, "Is it a status message");
         reply_length = make_status_message(&reply_data);
+    } else 
+    if (strcmp((char *)(queue_item->parts[0]), "sensors") == 0)
+    {
+         ESP_LOGI(log_prefix, "Is it a sensor request message");
+        reply_length = make_sensors_message(&reply_data);       
     }
 
     /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
     ESP_LOGI(log_prefix, "In do_on_work task, responding to the controller. Conversation id = %u", queue_item->conversation_id);
     if (reply_data == NULL)
     {
-        ESP_LOGI(log_prefix, "Status empty for some reason");
+        ESP_LOGI(log_prefix, "Reply empty for some reason");
     }
     else
     {
@@ -83,4 +103,8 @@ void do_on_work(struct work_queue_item *queue_item)
 
     /* Always call the cleanup crew when done */
     cleanup_queue_task(queue_item);
+}
+
+void init_sensors() {
+    init_ds1603l(log_prefix);
 }

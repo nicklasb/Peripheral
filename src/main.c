@@ -29,6 +29,8 @@
  *   APPLICATION MAIN
  **********************/
 void app_main() {
+    
     sdp_init(do_on_work, do_on_priority, "Peripheral\0", false);
+    init_sensors();
 
 }
