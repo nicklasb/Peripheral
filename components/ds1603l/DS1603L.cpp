@@ -1,5 +1,8 @@
+
 #include "DS1603L.h"
-//#include <Arduino.h>                                            // To have access to millis().
+#include <Arduino.h>     // To have access to millis().
+
+#include "esp_log.h"
 
 DS1603L::DS1603L(Stream &stream) {                              // General constructor.
   sensorSerial = &stream;

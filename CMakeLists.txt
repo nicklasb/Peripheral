@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16.0)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-include_directories(./components)
-include_directories(./lib)
+
+set(EXTRA_COMPONENT_DIRS "../Controller/components/")
 
 project(Peripheral)
+

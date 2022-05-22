@@ -3,7 +3,6 @@
  * 
  * Written by Wouter van Marle, wouter@cityhydronics.hk, 2018
  */
-
 #ifndef __DS1603L__
 #define __DS1603L__
 
@@ -28,4 +27,8 @@ class DS1603L {
     int16_t reading;                                            // The latest reading as returned by the sensor: water level in mm.
     uint32_t lastReadingTime;                                   // When the last successful reading was received, to detect disconnection.
 };
+
 #endif
+
+
+

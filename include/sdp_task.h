@@ -1,16 +1,11 @@
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
     /*********************
      *      DEFINES
      *********************/
-
+    
     /*********************
      *      INCLUDES
      *********************/
+    
 
     /**********************
      *      TYPEDEFS
@@ -20,13 +15,11 @@ extern "C"
      * GLOBAL PROTOTYPES
      **********************/
 
-    /* Tasks for handling work items */
-    int init_ds1603l(char *log_prefix);
-    int read_sd1603l();
+    void init_sdp_task();
+
+
+
     /**********************
      *      MACROS
      **********************/
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
