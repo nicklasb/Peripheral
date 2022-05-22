@@ -60,7 +60,9 @@
     {
 
         // Collect sensor data
-        return add_to_message(message, "%i mm", read_ds1603l());
+
+        return add_to_message(message, "%i", read_ds1603l());
+    
     }
 
     void do_on_work(struct work_queue_item *work_item)
