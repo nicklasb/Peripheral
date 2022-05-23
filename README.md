@@ -33,8 +33,10 @@ Upcoming:
 ## Platform
 
 ### Software
-This is an esp-idf project, but as I also like PlatformIO, I use /src rather than /main folder structure. 
-Otherwise it looks the same. Also not sure why esp-idf wants to deviate from the norm.
+This is an esp-idf project, and even though I'd prefer it being pure PlatformIO, I had
+to change it around (use /main) to make it work with Arduino ESP32, which currently doesn't work properly on PlatformIO. 
+It was not all bad though, I hade to move things into proper ESP-IDF-components, and that isn't lost as it will 
+probably make it easier to move back into PlatformIO again at some point.
 
 ### Hardware
 
@@ -44,7 +46,7 @@ Otherwise it looks the same. Also not sure why esp-idf wants to deviate from the
     - LoRa 868mhz (This project doesn't use LoRa, at least not initially) 
     - SSD1306 OLED (will not be used initially)
 
-I use this module just because I hade it lying around, serious stuff will be whatever cheap ESP32.
+I use this module just because I hade it lying around, the real stuff will be whatever cheap ESP32:s i stumble upon.
 
 ## Custom 
 
@@ -73,6 +75,13 @@ Uses Nimble, and mostly defaults.
     - Bluetooth Host (NimBLE - BLE only)  --->  
     - NimBLE Options  --->  
 
+### Arduino
+Notable Arduino settings, no setup and loop, and the only thing included is something it seems I have to have(https://github.com/espressif/arduino-esp32/issues/6788):
+- [ ] Autostart Arduino setup and loop on boot
+- [x] Include only specific Arduino libraries
+    - [x] Enable ArduinoOTA
+
+Basically I only need stream.h.
 
 ## TODO:
 
