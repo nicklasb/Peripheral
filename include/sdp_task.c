@@ -5,6 +5,10 @@
 
 #include <string.h>
 #include <esp_log.h>
+#include <driver/adc.h>
+#include "esp_adc_cal.h"
+#include <math.h>
+#include "LUT.h"
 
     /**
      * @brief Takes a closer look on the incoming request queue item, does it need urgent attention?
@@ -56,12 +60,47 @@
                               heap_caps_get_free_size(MALLOC_CAP_8BIT), 0.5);
     }
 
+    float read_190k_level_meter () {
+        adc1_config_width(ADC_WIDTH_12Bit);
+        adc1_config_channel_atten(ADC1_CHANNEL_6,ADC_ATTEN_11db);
+        float adcMax = 4095; // ADC resolution 12-bit, TODO: Use in formula for clarity
+        // This could probably improve (is only tested without LUT and with a 180 ohm meter.)
+        return (float)(100-(adc1_get_raw(ADC1_CHANNEL_6)-2060)/20.36);
+
+    } 
+    float read_10k_thermistor() {
+        adc1_config_width(ADC_WIDTH_12Bit);
+        adc1_config_channel_atten(ADC1_CHANNEL_6,ADC_ATTEN_11db);
+        float adcMax = 4095; // ADC resolution 12-bit
+        float Vs = 3.3;    // supply voltage
+        int beta = 3950;   // Beta from manufacturer
+        //Rt = R1 * Vout/(Vs - Vout)
+        int adc_out = adc1_get_raw(ADC1_CHANNEL_6);
+        
+        if (adc_out > -1) {
+            adc_out = ADC_LUT[(int)adc_out];
+            float Vout = adc_out * Vs/adcMax;
+            ESP_LOGI(log_prefix, "2 Vout_Raw = %f", Vout);
+        
+            float Rt = 9290 * Vout/(Vs - Vout);
+            float T =  1 / (1/298.15 + log(Rt/10000)/beta);
+            ESP_LOGI(log_prefix, "2 Vout = %f, Rt = %f, T(K) = %f T(C) = %f", Vout, Rt, T, T - 273.15);
+            return T- 273.15;
+        } else {
+            ESP_LOGE(log_prefix, "In read_10k_thermistor() Parameter error, sending -9999.");
+            return -99;
+        }
+
+    } 
+
     int make_sensors_message(uint8_t **message)
     {
 
         // Collect sensor data
 
-        return add_to_message(message, "%i", read_ds1603l());
+
+        return add_to_message(message, "%.2f|%.2f|%i", read_10k_thermistor(),read_190k_level_meter(),read_ds1603l());
+        //return add_to_message(message, "%i|%i dfdfg",res, read_ds1603l());
     
     }
 
@@ -83,7 +122,9 @@
         else if (strcmp((char *)(work_item->parts[0]), "sensors") == 0)
         {
             ESP_LOGI(log_prefix, "Is it a sensor request message");
+            
             reply_length = make_sensors_message(&reply_data);
+
         }
 
         /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
@@ -105,6 +146,19 @@
     void init_sensors()
     {
         init_ds1603l(log_prefix);
+        if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK) {
+            ESP_LOGI(log_prefix, "eFuse Two Point: Supported\n");
+        } else {
+            ESP_LOGI(log_prefix, "eFuse Two Point: NOT supported\n");
+        }
+
+        //Check Vref is burned into eFuse
+        if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF) == ESP_OK) {
+            ESP_LOGI(log_prefix, "eFuse Vref: Supported\n");
+        } else {
+            ESP_LOGI(log_prefix, "eFuse Vref: NOT supported\n");
+        }
+
     }
 
 void init_sdp_task() {
