@@ -17,18 +17,18 @@ The first evolution is hard-coded to a specific setup, the next will attempt to 
 Done:
 * A buildable Platform IO project
 * Create a custom BLE peripheral that sends any data to the controller
-* Using [https://github.com/e-tinkers/esp32-adc-calibrate], I made a calibration lookup table, ![A LUT diagram for one of my ESP32 Devkitc V4](docs/LUT.png) which *hugely* improves the precison of the not-completely-linear ESP32 for resistance based sensors, like termistors and mechanical level meters. Perhaps this should be included as a feature of the peripheral?
+* Using [the esp32-adc-calibrate library](https://github.com/e-tinkers/esp32-adc-calibrate), I made a calibration lookup table:
+![A LUT diagram for one of my ESP32 Devkitc V4](docs/LUT.png) 
+
+This *hugely* improves the ADC precison of the not-completely-linear ESP32 for resistance based sensors, like termistors and mechanical level meters. Perhaps this should be included as a feature of the peripheral?
 
 WIP:
-* Create a real peripheral and try that out during summer.
-
+* Based on this project, build a couple peripherals and try them out during sailing this summer.
 
 
 Upcoming:
 * Implement a simple high-level protocol that effeciently can send many kinds of sensor data
 * Implement support for a lot of different sensors in the peripherals (see that repo)
-
-
 
 
 ## Platform
