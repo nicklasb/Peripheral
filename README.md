@@ -16,11 +16,12 @@ The first evolution is hard-coded to a specific setup, the next will attempt to 
 # Progress
 Done:
 * A buildable Platform IO project
-
+* Create a custom BLE peripheral that sends any data to the controller
+* Using [https://github.com/e-tinkers/esp32-adc-calibrate], I made a calibration lookup table, ![A LUT diagram for one of my ESP32 Devkitc V4](docs/LUT.png) which *hugely* improves the precison for resistance based sensors, like termistors and mechanical level meters. Perhaps this shouldbe included as a feature of the peripheral?
 
 WIP:
+* Create a real peripheral and try that out during summer.
 
-* Create a custom BLE peripheral that sends any data to the controller
 
 
 Upcoming:
