@@ -40,7 +40,10 @@ It was not all bad though, I hade to move things into proper ESP-IDF-components,
 probably make it easier to move back into PlatformIO again at some point.
 
 ## Hardware
+Currently I use the ESP32 Devkit V4, but it worked on the Lora32 before. 
 
+- ESP32 Devkit V4
+    - Just the board.
 - TTGO LoRa32 module (CH9102) 
     - Bluetooth Low Energy (BLE)
     - ESP32 WROVER
@@ -58,10 +61,10 @@ These are settings that might be, and probably is, specific to my setup.
 
 - Flash SPI mode (QIO)  --->
 - Flash SPI speed (80 MHz)  --->  
-*These were the flash settings that worked for the LoRa32.*
+*These were the flash settings that worked for the LoRa32 and ESP32 Devkit V4.*
 
 - CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ needs to be 240Mhz. For some reason that isn't the default all the time. 
-- CONFIG_ESP32_XTAL_FREQ needs to be 26 Mhz. The crystal seems to be 26 even though the default is 40 Mhz in the ESP32 menuconfig 
+- ***Lora32 only**: CONFIG_ESP32_XTAL_FREQ needs to be 26 Mhz. The crystal seems to be 26 even though the default is 40 Mhz in the ESP32 menuconfig* 
 
 ## Component config 
 
