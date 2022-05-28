@@ -60,12 +60,45 @@
                               heap_caps_get_free_size(MALLOC_CAP_8BIT), 0.5);
     }
 
-    float read_190k_level_meter () {
+    float read_190_Ohm_level_meter () {
+        // Tested: EBM Liquid level sensor S3 300
+        // Actual ohm range: 0.4 to 191.4
         adc1_config_width(ADC_WIDTH_12Bit);
         adc1_config_channel_atten(ADC1_CHANNEL_6,ADC_ATTEN_11db);
         float adcMax = 4095; // ADC resolution 12-bit, TODO: Use in formula for clarity
-        // This could probably improve (is only tested without LUT and with a 180 ohm meter.)
-        return (float)(100-(adc1_get_raw(ADC1_CHANNEL_6)-2060)/20.36);
+        float Vs = 3.3;    // supply voltage
+        float Vfs = 3.3; //Full-scale voltage (given 3.3 volts above)
+        float Rp = 66; // Pre-Rt resistors to push voltage into a better region
+        float Rk = 254; // Known resistor 
+         // Sensor details
+        float Ra = 2; // Manual adjustment, other resistance after sensor (or negative if before)
+        float Rm = 195.4; // Max R from sensor as measured by the ADC
+        float Hf = 15; // mm floater sinks in liquid
+        float Hs = 250; // mm max movement of sensor
+        float Hb = 7; // mm blindness at bottom that the floater can't sink
+
+
+
+        int adc_out = adc1_get_raw(ADC1_CHANNEL_6);
+        if (adc_out > -1) {
+            adc_out = ADC_LUT[(int)adc_out];
+            float Vout = adc_out * Vfs/adcMax;
+        
+            float Rt = Rk * Vout/(Vs - Vout);
+            float Rf = Rt - Rp - Ra;
+            float Height = (Rf / Rm * Hs) + Hf;
+            if (Height < Hb) {
+                Height = 0;
+            }
+            ESP_LOGI(log_prefix, "190K: Height = %f, Vout = %f, Rf= %f, Rt = %fadc_out = %i ", Height, Vout, Rf, Rt, adc_out);
+            
+            
+            return Height;
+        } else {
+            ESP_LOGE(log_prefix, "In read_190k_level_meter() Parameter error, sending -9999.");
+            return -99;
+        }        
+        //return (float)(100-(adc1_get_raw(ADC1_CHANNEL_6)-2060)/20.36);
 
     } 
     float read_10k_thermistor() {
@@ -99,7 +132,7 @@
         // Collect sensor data
 
 
-        return add_to_message(message, "%.2f|%.2f|%i", read_10k_thermistor(),read_190k_level_meter(),read_ds1603l());
+        return add_to_message(message, "%.2f|%.2f|%i", read_190_Ohm_level_meter(), read_10k_thermistor(),read_ds1603l());
         //return add_to_message(message, "%i|%i dfdfg",res, read_ds1603l());
     
     }
