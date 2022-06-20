@@ -157,36 +157,23 @@ float read_180_ohm_lever_level_meter()
     float Hs = 250; // mm max movement of sensor
     float Hb = 0;   // mm blindness at bottom that the floater can't sink
 
-    // Alittle bit of DSP
+    // A little bit of DSP settings
     int multisampling = 40;
-    /*
-    for (int i = 0; i < 1000; i++) {
-        int raw = adc1_get_raw(ADC1_CHANNEL_6);
-        float cal = ADC_LUT[(int)raw];
-        struct timespec tv;
-	    clock_gettime(CLOCK_REALTIME, &tv);
-	    
-        ESP_LOGI("","%f,%i,%f", (double)(tv.tv_sec) + (double)(tv.tv_nsec)/1000000000,raw, cal);
-
-    }
-    */
 
     // Multisample and average to minimize the significant noise
     float total = 0;
     int raw = 0;
-    
     for (int i = 0; i < multisampling; i++) {
         raw = adc1_get_raw(ADC1_CHANNEL_6);
         total+= ADC_LUT[(int)raw];
     }
-    
-    float adc_in = (double)total/multisampling;
+
+   float adc_in = (double)total/multisampling;
 
     if (adc_in > -1)
     {
         float Rf = calc_resistance(adc_in, adc_max, Vs, Vfs, Rk, Rp);
-
-        
+        // The height is a function of max/min resistance, max movement, and the sinking of the float
         float raw_height = (Rf / Rm * Hs) + Hf;
 
         // Find calibration values
@@ -197,14 +184,15 @@ float read_180_ohm_lever_level_meter()
         // Calibrate
         float cal_height = raw_height + lever_LUT_value[j];
 
+        // Is it below the blind spot?
         if (cal_height < Hb)
         {
             ESP_LOGI(log_prefix, "Lever sensor: raw_height (%f) is below blind spot (%f) ,setting to 0.", raw_height, Hb);
             cal_height = 0;
         }
-        ESP_LOGI(log_prefix, "Lever sensor:\n    raw_height = %f = (Rf / Rm * Hs) + Hf = (%f / %f * %f) + %f\n\
-            cal_height = (raw_heigh + lever_LUT_value) = (%f + %f) = %f, %i",
-                 raw_height, Rf, Rm, Hs, Hf, raw_height, lever_LUT_value[j], cal_height, j);
+        ESP_LOGI(log_prefix, "Lever sensor:\n    raw_height = %f = (Rf / Rm * Hs) + Hf = (%f / %f * %f) + %f\n"
+                "    cal_height = (raw_heigh + lever_LUT_value) = (%f + %f) = %f",
+                raw_height, Rf, Rm, Hs, Hf, raw_height, lever_LUT_value[j], cal_height);
 
         return cal_height;
     }

@@ -290,7 +290,10 @@ const float ADC_LUT[4096] = {0,
     4062.0000, 4062.8000, 4063.0000, 4063.8000, 4064.0000, 4065.8000, 4067.0000, 4068.8000, 4070.0000, 4071.8000, 4073.2000, 4074.8000, 4076.3999, 4078.0000, 4079.40
     };
 
-/* The Resistance lever fluid level sensor was painstakingly calibrated every centimeter of its range */
+/**
+ * @brief The Resistance lever fluid level sensor was painstakingly calibrated every centimeter of its range
+ * Stored as key/values
+ */
 const float lever_LUT_key[26] = {
     30.497414, 41.779373, 50.445065, 57.248577, 65.558167, 
     71.990753, 80.328438, 87.177536, 95.879417, 102.422615, 
