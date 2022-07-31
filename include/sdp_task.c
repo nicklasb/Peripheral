@@ -317,14 +317,14 @@ void init_sensors()
 void periodic_sensor_test(void *arg)
 {
     /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
-    ESP_LOGI(log_prefix, "In prediodic_sensor_query test on the peripheral.");
+    //ESP_LOGI(log_prefix, "In prediodic_sensor_query test on the peripheral.");
 
     //char data[9] = "sensors\0";
-    ESP_LOGI(log_prefix, "Testing.");
+    //ESP_LOGI(log_prefix, "Reading VE.direct...");
     test_bmv700();
     
-    ESP_LOGI(log_prefix, "Testing done.");
-    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 5000000));
+    //ESP_LOGI(log_prefix, "VE done.");
+    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 50000));
 }
 
 void init_sdp_task()

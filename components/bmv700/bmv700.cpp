@@ -31,7 +31,7 @@ int init_bmv700(char *log_prefix) {
     ve_log_prefix = log_prefix;
 
     // rx of the Arduino to tx of the sensor
-    VeSerial.begin(9600, SWSERIAL_8N1);                         // Sensor transmits its data at 9600 bps.
+    VeSerial.begin(19200, SWSERIAL_8N1);                         // Sensor transmits its data at 9600 bps.
     if (!VeSerial) { // If the object did not initialize, then its configuration is invalid 
         ESP_LOGE(ve_log_prefix, "Invalid SoftwareSerial pin configuration, check config");
     } 
@@ -50,10 +50,24 @@ int init_bmv700(char *log_prefix) {
 }
 
 void test_bmv700() {
-
+    char viewbuf[1000];
+    int tmp;
+    int i = 0;
     while (VeSerial.available()) {
-        vedfh.rxData(prox(VeSerial.read()));
+        tmp = VeSerial.read();
+        viewbuf[i] = tmp;
+        vedfh.rxData(tmp);
+        i++;
+    }
+    if (i > 0) {
+        viewbuf[i] = 0;
+        
+        ESP_LOGI(ve_log_prefix, "TmpBuf: %s\nVeEnd: %i", viewbuf, vedfh.veEnd);
+        for (int ve_index = 0; i < vedfh.veEnd; i++) {
+            ESP_LOGI(ve_log_prefix, "Value: %s, Name: %s", vedfh.veName[ve_index], vedfh.veValue[ve_index]);
+        }       
     }
 
-    ESP_LOGI(ve_log_prefix, "Tested!");
+   
+
 }
