@@ -25,10 +25,10 @@ static void static_log_e(const char* module, const char* error) {
     ESP_LOGE(ve_log_prefix, "Error in BMV700, module: %s, error: %s", module, error);
 }
 
-int init_bmv700(char *ve_log_prefix) {
+int init_bmv700(char *log_prefix) {
     
     
-    ve_log_prefix = ve_log_prefix;
+    ve_log_prefix = log_prefix;
 
     // rx of the Arduino to tx of the sensor
     VeSerial.begin(9600, SWSERIAL_8N1);                         // Sensor transmits its data at 9600 bps.
@@ -37,13 +37,23 @@ int init_bmv700(char *ve_log_prefix) {
     } 
     vedfh.setErrorHandler(&static_log_e);   
 
-    ESP_LOGI(ve_log_prefix, "DS1603 sensor successfully initiated.");
+    ESP_LOGI(ve_log_prefix, "VE.Direct interface successfully initiated.");
 
     return 0;
 
 
 }
 
+ int prox(int val) {
+    ESP_LOGI(ve_log_prefix, "V %i",val);
+    return val;
+}
+
 void test_bmv700() {
-    //
+
+    while (VeSerial.available()) {
+        vedfh.rxData(prox(VeSerial.read()));
+    }
+
+    ESP_LOGI(ve_log_prefix, "Tested!");
 }

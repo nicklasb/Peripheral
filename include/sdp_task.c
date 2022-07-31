@@ -321,6 +321,7 @@ void periodic_sensor_test(void *arg)
 
     //char data[9] = "sensors\0";
     ESP_LOGI(log_prefix, "Testing.");
+    test_bmv700();
     
     ESP_LOGI(log_prefix, "Testing done.");
     ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 5000000));
