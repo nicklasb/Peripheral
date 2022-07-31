@@ -10,6 +10,10 @@
 #include <math.h>
 #include "LUT.h"
 #include <time.h>
+#include <bmv700.h>
+
+// Testing
+esp_timer_handle_t periodic_timer;
 
 /**
  * @brief Takes a closer look on the incoming request queue item, does it need urgent attention?
@@ -286,6 +290,7 @@ void do_on_work(struct work_queue_item *work_item)
 void init_sensors()
 {
     init_ds1603l(log_prefix);
+    init_bmv700(log_prefix);
     if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK)
     {
         ESP_LOGI(log_prefix, "eFuse Two Point: Supported\n");
@@ -305,9 +310,33 @@ void init_sensors()
         ESP_LOGI(log_prefix, "eFuse Vref: NOT supported\n");
     }
 }
+/**
+ * @brief This is periodically waking up the controller, sends a request for sensor data
+ *
+ */
+void periodic_sensor_test(void *arg)
+{
+    /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
+    ESP_LOGI(log_prefix, "In prediodic_sensor_query test on the peripheral.");
+
+    //char data[9] = "sensors\0";
+    ESP_LOGI(log_prefix, "Testing.");
+    
+    ESP_LOGI(log_prefix, "Testing done.");
+    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 5000000));
+}
 
 void init_sdp_task()
 {
     sdp_init(do_on_work, do_on_priority, "Peripheral\0", false);
     init_sensors();
+
+    const esp_timer_create_args_t periodic_timer_args = {
+            .callback =  &periodic_sensor_test,
+            .name = "periodic_query"
+    };
+
+
+    ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
+    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 500000));
 }
