@@ -4,9 +4,6 @@
 
 #include "DS1603L.h"
 
-
-
-
 #include "SoftwareSerial.h"
 
 #include "esp_log.h"

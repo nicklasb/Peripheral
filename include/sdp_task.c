@@ -12,6 +12,7 @@
 #include <time.h>
 #include <bmv700.h>
 
+
 // Testing
 esp_timer_handle_t periodic_timer;
 
@@ -289,7 +290,8 @@ void do_on_work(struct work_queue_item *work_item)
 
 void init_sensors()
 {
-    init_ds1603l(log_prefix);
+    //init_ds1603l(log_prefix);
+
     init_bmv700(log_prefix);
     if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK)
     {
@@ -322,9 +324,10 @@ void periodic_sensor_test(void *arg)
     //char data[9] = "sensors\0";
     //ESP_LOGI(log_prefix, "Reading VE.direct...");
     test_bmv700();
-    
+    //test_bmv700();
+    //test_bmv700();
     //ESP_LOGI(log_prefix, "VE done.");
-    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 50000));
+    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 2000000));
 }
 
 void init_sdp_task()
@@ -339,5 +342,5 @@ void init_sdp_task()
 
 
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
-    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 500000));
+    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 200000));
 }
