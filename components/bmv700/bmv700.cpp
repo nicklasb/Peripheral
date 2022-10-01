@@ -2,15 +2,15 @@
 
 #include "bmv700.h"
 
-#include "SoftwareSerial.h"
-
+//#include "SoftwareSerial.h"
+#include <HardwareSerial.h>
 #include "esp_log.h"
 
-#include "VeDirectFrameHandler.h"
+#include <VeDirectFrameHandler.h>
 
 // Change this to reflect how your sensor is connected.
-const uint8_t txPin = 35; // tx of the MCU to rx of the sensor
-const uint8_t rxPin = 27;
+const uint8_t txPin = 17; // Green - HW 17tx of the MCU to rx of the sensor
+const uint8_t rxPin = 16; // Yellow - HW 16
 
 SemaphoreHandle_t xBMVSemaphore;
 
@@ -18,7 +18,8 @@ char *ve_log_prefix;
 char viewbuf[1000];
 int bufi;
 
-SoftwareSerial veSerial;
+// Use UART 1
+HardwareSerial veSerial(1);
 
 VeDirectFrameHandler vedfh;
 
@@ -43,7 +44,7 @@ int init_bmv700(char *log_prefix)
     ve_log_prefix = log_prefix;
 
     // rx of the Arduino to tx of the sensor
-    veSerial.begin(19200, SWSERIAL_8N1, rxPin, txPin, false, 1000); // VE.direct is at 19200 bps.
+    veSerial.begin(19200, SERIAL_8N1, rxPin, txPin, false, 1000); // VE.direct is at 19200 bps.
 
     if (!veSerial)
     { // If the object did not initialize, then its configuration is invalid
@@ -82,7 +83,7 @@ void ReadVEData()
             ESP_LOGI(ve_log_prefix, "VE.Direct - No data after 1000 ms.");
             return;
         }
-        veSerial.perform_work();
+        //veSerial.perform_work();
     }
     ESP_LOGI(ve_log_prefix, "VE.Direct - %i bytes of data available.", veSerial.available());
 
@@ -107,7 +108,7 @@ void parse()
         for (int i = 0; i < bufi; i++)
         {
             vedfh.rxData(viewbuf[i]);
-            veSerial.perform_work();
+            //veSerial.perform_work();
         }
     }
 }
