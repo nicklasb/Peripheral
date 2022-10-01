@@ -104,7 +104,6 @@ void parse()
 
         viewbuf[bufi] = 0;
 
-        ESP_LOGI(ve_log_prefix, "Raw buffer:\n%s", viewbuf);
         for (int i = 0; i < bufi; i++)
         {
             vedfh.rxData(viewbuf[i]);
