@@ -19,7 +19,7 @@ extern "C"
 int init_bmv700(char *log_prefix);
 
 
-void test_bmv700();
+char* read_bmv700();
 
 #endif
 

@@ -112,17 +112,21 @@ void parse()
     }
 }
 
-void test_bmv700()
+char* read_bmv700()
 {
     ReadVEData();
 
     parse();
     if (vedfh.veEnd > 0)
     {
+        //char *loc_format = heap_caps_malloc(format_len + 1, MALLOC_CAP_8BIT);
+        //strcpy(loc_format, format);
         ESP_LOGI(ve_log_prefix, "Current data:");
         for (int ve_index = 0; ve_index < vedfh.veEnd; ve_index++)
         {
+
             ESP_LOGI(ve_log_prefix, "Name: %s, Value: %s", vedfh.veName[ve_index], vedfh.veValue[ve_index]);
         }
     }
+    return "";
 }
