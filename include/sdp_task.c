@@ -1,5 +1,6 @@
 #include "sdp_task.h"
 #include "sdp.h"
+#include "sdp_messaging.h"
 #include <sdp_helpers.h>
 #include <sensor_ds1603l.h>
 
@@ -48,7 +49,7 @@ int do_on_filter_data(struct work_queue_item *work_item)
  *
  * @param work_item
  */
-void do_on_priority(struct work_queue_item *work_item)
+void do_on_priority(work_queue_item_t *work_item)
 {
 
     ESP_LOGI(log_prefix, "In ble data callback on the controller!");
@@ -56,6 +57,7 @@ void do_on_priority(struct work_queue_item *work_item)
     {
         ESP_LOGD(log_prefix, "Got asked for status!");
     }
+    cleanup_queue_task(work_item);
 }
 
 int make_status_message(uint8_t **message)
@@ -243,31 +245,31 @@ int make_sensors_message(uint8_t **message)
     // Collect sensor data
 
     // return add_to_message(message, "%.2f", read_180_ohm_lever_level_meter());
-
-    return add_to_message(message, "%.i|%.2f", read_ds1603l(), read_180_ohm_lever_level_meter());
+    return 0;
+    //return add_to_message(message, "%.i|%.2f", read_ds1603l(), read_180_ohm_lever_level_meter());
     // return add_to_message(message, "%.2f|%.2f|%i", read_180_ohm_lever_level_meter(), read_10k_thermistor(),read_ds1603l());
     // return add_to_message(message, "%i|dfdfg", read_ds1603l());
 }
 
-void do_on_work(struct work_queue_item *work_item)
+void do_on_work(work_queue_item_t *work_item)
 {
 
-    ESP_LOGD(log_prefix, "In do_on_work task on the peripheral, got a message:\n");
+    ESP_LOGI(log_prefix, "In do_on_work task on the peripheral, got a message:\n");
     for (int i = 0; i < work_item->partcount; i++)
     {
-        ESP_LOGD(log_prefix, "Message part %i: \"%s\"", i, work_item->parts[i]);
+        ESP_LOGI(log_prefix, "Message part %i: \"%s\"", i, work_item->parts[i]);
     }
 
     uint8_t *reply_data = NULL;
     int reply_length = 0;
     if (strcmp((char *)(work_item->parts[0]), "status") == 0)
     {
-        ESP_LOGD(log_prefix, "Is it a status message");
+        ESP_LOGI(log_prefix, "Is it a status message");
         reply_length = make_status_message(&reply_data);
     }
     else if (strcmp((char *)(work_item->parts[0]), "sensors") == 0)
     {
-        ESP_LOGD(log_prefix, "Is it a sensor request message");
+        ESP_LOGI(log_prefix, "Is it a sensor request message");
 
         reply_length = make_sensors_message(&reply_data);
     }
@@ -286,6 +288,7 @@ void do_on_work(struct work_queue_item *work_item)
 
     /* Always call the cleanup crew when done */
     cleanup_queue_task(work_item);
+
 }
 
 void init_sensors()
@@ -332,7 +335,8 @@ void periodic_sensor_test(void *arg)
 
 void init_sdp_task()
 {
-    sdp_init(do_on_work, do_on_priority, "Peripheral\0", false);
+    sdp_init(&do_on_work, &do_on_priority, "Peripheral\0", false);
+    ESP_LOGI(log_prefix, "init_sdp_task() %i", (int)do_on_work);
     init_sensors();
 
     const esp_timer_create_args_t periodic_timer_args = {

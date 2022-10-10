@@ -1840,6 +1840,14 @@ CONFIG_LV_TOUCH_CONTROLLER_NONE=y
 CONFIG_LV_I2C_TOUCH_PORT=0
 # end of LVGL Touch controller
 # end of LVGL ESP Drivers
+
+#
+# SDP Configuration
+#
+CONFIG_SDP_LOAD_BLE=y
+# CONFIG_SDP_LOAD_ESP_NOW is not set
+CONFIG_SDP_PEER_NAME_LEN=16
+# end of SDP Configuration
 # end of Component config
 
 #

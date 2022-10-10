@@ -121,6 +121,8 @@ char* read_bmv700()
     {
         //char *loc_format = heap_caps_malloc(format_len + 1, MALLOC_CAP_8BIT);
         //strcpy(loc_format, format);
+// TODO: Create a simulator based on real data
+
         ESP_LOGI(ve_log_prefix, "Current data:");
         for (int ve_index = 0; ve_index < vedfh.veEnd; ve_index++)
         {
