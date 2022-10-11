@@ -12,6 +12,8 @@
 #include "LUT.h"
 #include <time.h>
 #include <bmv700.h>
+#include <esp_timer.h>
+#include <esp_heap_caps.h>
 
 
 // Testing
