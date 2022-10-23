@@ -3,6 +3,7 @@
 #include "sdp_messaging.h"
 #include <sdp_helpers.h>
 #include <sensor_ds1603l.h>
+#include "../secret/local_settings.h"
 
 #include <string.h>
 #include <esp_log.h>
@@ -15,6 +16,11 @@
 #include <esp_timer.h>
 #include <esp_heap_caps.h>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+#include "sdp_mesh.h"
+#include "orchestration/orchestration.h"
 
 // Testing
 esp_timer_handle_t periodic_timer;
@@ -339,6 +345,8 @@ void init_sdp_task()
 {
     sdp_init(&do_on_work, &do_on_priority, "Peripheral\0", false);
     ESP_LOGI(log_prefix, "init_sdp_task() %i", (int)do_on_work);
+    sdp_peer* peer = sdp_add_init_new_peer("Controller", local_hosts[0].base_mac_address, SDP_MT_ESPNOW);
+
     init_sensors();
 
     const esp_timer_create_args_t periodic_timer_args = {
@@ -346,7 +354,16 @@ void init_sdp_task()
             .name = "periodic_query"
     };
 
-
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
     ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 200000));
+
+    if (peer != NULL) {
+        // Ask for orchestration
+        ESP_LOGI(log_prefix, "Asking for orchestration..");
+        sdp_orchestration_send_when_message(peer);    
+
+        ESP_LOGI(log_prefix, "Waiting for sleep..");
+        vTaskDelay(5000/portTICK_PERIOD_MS); 
+        sleep_until_peer_available(peer, 500000);
+    }
 }
