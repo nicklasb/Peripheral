@@ -1,20 +1,23 @@
 #include "sdp_task.h"
 #include "sdp.h"
 #include "sdp_messaging.h"
-#include <sdp_helpers.h>
-#include <sensor_ds1603l.h>
+#include "sdp_worker.h"
+
 #include "../secret/local_settings.h"
 
+#include <sdp_helpers.h>
+#include <sensor_ds1603l.h>
 #include <string.h>
 #include <esp_log.h>
 #include <driver/adc.h>
-#include "esp_adc_cal.h"
 #include <math.h>
-#include "LUT.h"
 #include <time.h>
 #include <bmv700.h>
 #include <esp_timer.h>
 #include <esp_heap_caps.h>
+
+#include "LUT.h"
+#include "esp_adc_cal.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -33,7 +36,7 @@ esp_timer_handle_t periodic_timer;
 int do_on_filter_request(struct work_queue_item *work_item)
 {
 
-    ESP_LOGD(log_prefix, "In filter request callback on the controller!");
+    ESP_LOGD(log_prefix, "In filter request callback on the peripheral!");
 
     /* Allow the data to be imported */
     return 0;
@@ -46,7 +49,7 @@ int do_on_filter_request(struct work_queue_item *work_item)
  */
 int do_on_filter_data(struct work_queue_item *work_item)
 {
-    ESP_LOGD(log_prefix, "In filter data callback on the controller!");
+    ESP_LOGD(log_prefix, "In filter data callback on the peripheral!");
 
     /* Allow the data to be imported */
     return 0;
@@ -60,12 +63,12 @@ int do_on_filter_data(struct work_queue_item *work_item)
 void do_on_priority(work_queue_item_t *work_item)
 {
 
-    ESP_LOGI(log_prefix, "In ble data callback on the controller!");
+    ESP_LOGI(log_prefix, "In ble data callback on the peripheral!");
     if (strcmp((char *)(work_item->raw_data), (char *)"status") == 0)
     {
         ESP_LOGD(log_prefix, "Got asked for status!");
     }
-    cleanup_queue_task(work_item);
+    sdp_cleanup_queue_task(work_item);
 }
 
 int make_status_message(uint8_t **message)
@@ -295,7 +298,7 @@ void do_on_work(work_queue_item_t *work_item)
     }
 
     /* Always call the cleanup crew when done */
-    cleanup_queue_task(work_item);
+    sdp_cleanup_queue_task(work_item);
 
 }
 
@@ -329,16 +332,27 @@ void init_sensors()
  */
 void periodic_sensor_test(void *arg)
 {
-    /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
+    /* Note that the worker task is run on Core 1 (APP) as opposed to all the other callbacks. */
     //ESP_LOGI(log_prefix, "In prediodic_sensor_query test on the peripheral.");
 
     //char data[9] = "sensors\0";
     //ESP_LOGI(log_prefix, "Reading VE.direct...");
     read_bmv700();
     //    
+    uint8_t *message = NULL;
+    char * curr_time;
+    asprintf(&curr_time, "%.2f", (double)esp_timer_get_time()/(double)(1000000));
+    int curr_mem = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    ESP_LOGI("sdf", "---------------------%s seconds, %i", curr_time, heap_caps_get_free_size(MALLOC_CAP_8BIT) );
+    int data_length = add_to_message(&message, "%s|%i bytes|%s seconds",
+                          "running", curr_mem,
+                          curr_time); 
+    sdp_peer *peer = sdp_mesh_find_peer_by_name("Controller");
+
+    start_conversation(peer, DATA, "MQTT", message, data_length);
     
     //ESP_LOGI(log_prefix, "VE done.");
-    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 2000000));
+    //ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 2000000));
 }
 
 void init_sdp_task()
