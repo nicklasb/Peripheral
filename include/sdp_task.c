@@ -13,6 +13,7 @@
 #include <math.h>
 #include <time.h>
 #include <bmv700.h>
+#include <dht22.h>
 #include <esp_timer.h>
 #include <esp_heap_caps.h>
 
@@ -24,6 +25,7 @@
 
 #include "sdp_mesh.h"
 #include "orchestration/orchestration.h"
+#include "sleep/sleep.h"
 
 // Testing
 esp_timer_handle_t periodic_timer;
@@ -257,9 +259,9 @@ int make_sensors_message(uint8_t **message)
 
     // return add_to_message(message, "%.2f", read_180_ohm_lever_level_meter());
     return 0;
-    //return add_to_message(message, "%.i|%.2f", read_ds1603l(), read_180_ohm_lever_level_meter());
-    // return add_to_message(message, "%.2f|%.2f|%i", read_180_ohm_lever_level_meter(), read_10k_thermistor(),read_ds1603l());
-    // return add_to_message(message, "%i|dfdfg", read_ds1603l());
+    //return add_to_message(message, "%.i|%.2f", ds1603l_read(), read_180_ohm_lever_level_meter());
+    // return add_to_message(message, "%.2f|%.2f|%i", read_180_ohm_lever_level_meter(), read_10k_thermistor(),ds1603l_read());
+    // return add_to_message(message, "%i|dfdfg", ds1603l_read());
 }
 
 void do_on_work(work_queue_item_t *work_item)
@@ -306,7 +308,7 @@ void init_sensors()
 {
     //init_ds1603l(log_prefix);
 
-    init_bmv700(log_prefix);
+    bmv700_init(log_prefix);
     if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK)
     {
         ESP_LOGI(log_prefix, "eFuse Two Point: Supported\n");
@@ -325,6 +327,7 @@ void init_sensors()
     {
         ESP_LOGI(log_prefix, "eFuse Vref: NOT supported\n");
     }
+    dht22_init(log_prefix);
 }
 /**
  * @brief This is periodically waking up the controller, sends a request for sensor data
@@ -337,16 +340,31 @@ void periodic_sensor_test(void *arg)
 
     //char data[9] = "sensors\0";
     //ESP_LOGI(log_prefix, "Reading VE.direct...");
-    read_bmv700();
-    //    
-    uint8_t *message = NULL;
+    bmv700_read();
+    struct dht22_result dht22_res = dht22_read();
+
+    char * humidity;
+    asprintf(&humidity, "%.2f", dht22_res.humidity);
+
+    char * temperature;
+    asprintf(&temperature, "%.2f", dht22_res.temperature);
+
     char * curr_time;
     asprintf(&curr_time, "%.2f", (double)esp_timer_get_time()/(double)(1000000));
-    int curr_mem = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+
+    char * since_start;
+    asprintf(&since_start, "%.2f", (double)get_time_since_start()/(double)(1000000));
+
+    int free_mem = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+
+    char * total_awake_time;
+    asprintf(&total_awake_time, "%.2f", (double)get_total_time_awake()/(double)(1000000));
+        
+    uint8_t *message = NULL;
+
     ESP_LOGI("sdf", "---------------------%s seconds, %i", curr_time, heap_caps_get_free_size(MALLOC_CAP_8BIT) );
-    int data_length = add_to_message(&message, "%s|%i bytes|%s seconds",
-                          "running", curr_mem,
-                          curr_time); 
+    int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s",
+                          humidity, temperature, curr_time,  since_start, free_mem, total_awake_time); 
     sdp_peer *peer = sdp_mesh_find_peer_by_name("Controller");
 
     start_conversation(peer, DATA, "MQTT", message, data_length);

@@ -37,27 +37,6 @@ void HexCallback(const char *buffer, int size, void *data)
     ESP_LOGE(ve_log_prefix, "BMV700 hex frame:\n%s", tmp);
 }
 
-int init_bmv700(char *log_prefix)
-{
-
-    xBMVSemaphore = xSemaphoreCreateMutex();
-    ve_log_prefix = log_prefix;
-
-    // rx of the Arduino to tx of the sensor
-    veSerial.begin(19200, SERIAL_8N1, rxPin, txPin, false, 1000); // VE.direct is at 19200 bps.
-
-    if (!veSerial)
-    { // If the object did not initialize, then its configuration is invalid
-        ESP_LOGE(ve_log_prefix, "Invalid SoftwareSerial pin configuration, check config");
-    }
-    veSerial.flush();
-    vedfh.setErrorHandler(&static_log_e);
-    // hex protocol callback
-    vedfh.addHexCallback(&HexCallback, (void *)42);
-    ESP_LOGI(ve_log_prefix, "VE.Direct interface successfully initiated. rxPin = %i, txPin = %i", rxPin, txPin);
-
-    return 0;
-}
 
 int prox(int val)
 {
@@ -112,7 +91,7 @@ void parse()
     }
 }
 
-char* read_bmv700()
+char* bmv700_read()
 {
     ReadVEData();
 
@@ -131,4 +110,27 @@ char* read_bmv700()
         }
     }
     return "";
+}
+
+
+int bmv700_init(char *log_prefix)
+{
+
+    xBMVSemaphore = xSemaphoreCreateMutex();
+    ve_log_prefix = log_prefix;
+
+    // rx of the Arduino to tx of the sensor
+    veSerial.begin(19200, SERIAL_8N1, rxPin, txPin, false, 1000); // VE.direct is at 19200 bps.
+
+    if (!veSerial)
+    { // If the object did not initialize, then its configuration is invalid
+        ESP_LOGE(ve_log_prefix, "Invalid SoftwareSerial pin configuration, check config");
+    }
+    veSerial.flush();
+    vedfh.setErrorHandler(&static_log_e);
+    // hex protocol callback
+    vedfh.addHexCallback(&HexCallback, (void *)42);
+    ESP_LOGI(ve_log_prefix, "VE.Direct interface successfully initiated. rxPin = %i, txPin = %i", rxPin, txPin);
+
+    return 0;
 }

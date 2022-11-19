@@ -16,10 +16,10 @@ extern "C"
 
 //#include <Stream.h>                                             // Generic Stream library, upon which a.o. Serial and SoftwareSerial are built.
 
-int init_bmv700(char *log_prefix);
+int bmv700_init(char *log_prefix);
 
 
-char* read_bmv700();
+char* bmv700_read();
 
 #endif
 

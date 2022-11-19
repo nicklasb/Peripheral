@@ -22,25 +22,7 @@ DS1603L sensor(sensorSerial);
 //// If your sensor is connected to Serial, Serial1, Serial2, AltSoftSerial, etc. pass that object to the sensor constructor.
 
 
-int init_ds1603l(char *ds_log_prefix) {
-    
-    
-    ds_log_prefix = ds_log_prefix;
-    // rx of the Arduino to tx of the sensor
-    sensorSerial.begin(9600, SWSERIAL_8N1);                         // Sensor transmits its data at 9600 bps.
-    if (!sensorSerial) { // If the object did not initialize, then its configuration is invalid 
-        ESP_LOGE(ds_log_prefix, "Invalid SoftwareSerial pin configuration, check config");
-    } 
-    sensor.begin();   
-
-    ESP_LOGI(ds_log_prefix, "DS1603 sensor successfully initiated.");
-
-    return 0;
-
-
-}
-
-int read_ds1603l() {
+int ds1603l_read() {
     ESP_LOGI(ds_log_prefix, "Reading DS1603 sensor..");
     uint16_t reading = sensor.readSensor();       // Call this as often or as little as you want - the sensor transmits every 1-2 seconds.
     ESP_LOGI(ds_log_prefix, "Read DS1603 sensor..");
@@ -60,4 +42,23 @@ int read_ds1603l() {
         return reading;
     }
     return -1;
+}
+
+
+int ds1603l_init(char *ds_log_prefix) {
+    
+    
+    ds_log_prefix = ds_log_prefix;
+    // rx of the Arduino to tx of the sensor
+    sensorSerial.begin(9600, SWSERIAL_8N1);                         // Sensor transmits its data at 9600 bps.
+    if (!sensorSerial) { // If the object did not initialize, then its configuration is invalid 
+        ESP_LOGE(ds_log_prefix, "Invalid SoftwareSerial pin configuration, check config");
+    } 
+    sensor.begin();   
+
+    ESP_LOGI(ds_log_prefix, "DS1603 sensor successfully initiated.");
+
+    return 0;
+
+
 }

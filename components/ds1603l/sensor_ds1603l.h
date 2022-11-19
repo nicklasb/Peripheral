@@ -21,9 +21,8 @@ extern "C"
      * GLOBAL PROTOTYPES
      **********************/
 
-    /* Tasks for handling work items */
-    int init_ds1603l(char *log_prefix);
-    int read_ds1603l();
+    int ds1603l_read();
+    int ds1603l_init(char *log_prefix);
     /**********************
      *      MACROS
      **********************/
