@@ -362,7 +362,7 @@ void periodic_sensor_test(void *arg)
         
     uint8_t *message = NULL;
 
-    ESP_LOGI("sdf", "---------------------%s seconds, %i", curr_time, heap_caps_get_free_size(MALLOC_CAP_8BIT) );
+    ESP_LOGI("sdf", "---------------------%s seconds, %i", curr_time, heap_caps_get_free_size(MALLOC_CAP_EXEC));
     int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s",
                           humidity, temperature, curr_time,  since_start, free_mem, total_awake_time); 
     sdp_peer *peer = sdp_mesh_find_peer_by_name("Controller");
@@ -380,6 +380,8 @@ void init_sdp_task()
     sdp_peer* peer = sdp_add_init_new_peer("Controller", local_hosts[0].base_mac_address, SDP_MT_ESPNOW);
 
     init_sensors();
+    /* Allow for some communication between the peripheral and the controller */
+    vTaskDelay(1000/portTICK_PERIOD_MS);
 
     const esp_timer_create_args_t periodic_timer_args = {
             .callback =  &periodic_sensor_test,
