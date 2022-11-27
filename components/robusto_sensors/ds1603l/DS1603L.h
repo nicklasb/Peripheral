@@ -5,7 +5,8 @@
  */
 #ifndef __DS1603L__
 #define __DS1603L__
-
+#include <sdkconfig.h>
+#if CONFIG_ROBUSTO_LOAD_DS1603L
 #include <Stream.h>                                             // Generic Stream library, upon which a.o. Serial and SoftwareSerial are built.
 
 #define DS1603L_NO_SENSOR_DETECTED 0                            // Sensor not detected.
@@ -28,6 +29,7 @@ class DS1603L {
     uint32_t lastReadingTime;                                   // When the last successful reading was received, to detect disconnection.
 };
 
+#endif
 #endif
 
 

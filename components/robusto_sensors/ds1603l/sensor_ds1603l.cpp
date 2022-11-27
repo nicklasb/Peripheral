@@ -2,6 +2,8 @@
 
 #include "sensor_ds1603l.h"
 
+#if CONFIG_ROBUSTO_LOAD_DS1603L
+
 #include "DS1603L.h"
 
 #include "SoftwareSerial.h"
@@ -62,3 +64,5 @@ int ds1603l_init(char *ds_log_prefix) {
 
 
 }
+
+#endif

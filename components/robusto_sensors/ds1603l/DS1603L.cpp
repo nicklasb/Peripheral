@@ -1,5 +1,8 @@
 
 #include "DS1603L.h"
+
+#if CONFIG_ROBUSTO_LOAD_DS1603L
+
 #include <Arduino.h>     // To have access to millis().
 
 #include "esp_log.h"
@@ -58,3 +61,4 @@ uint8_t DS1603L::getStatus() {
   return sensorStatus;
 }
 
+#endif

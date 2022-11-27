@@ -53,7 +53,7 @@ int prox(int val)
 
 void ReadVEData()
 {
-
+    ESP_LOGI(ve_log_prefix, "In read VEData()");
     bufi = 0;
     static unsigned long wait_millis = millis();
 
@@ -107,7 +107,7 @@ struct sensor_samples *bmv700_read()
     return get_simulation_samples();
     
 #else
-    struct sensor_samples *samples = (sensor_samples *)malloc(sizeof(samples));
+    struct sensor_samples *samples = (sensor_samples *)malloc(sizeof(struct sensor_samples));
     ReadVEData();
 
     parse();
@@ -115,12 +115,12 @@ struct sensor_samples *bmv700_read()
     {
         ESP_LOGI(ve_log_prefix, "Current data:");
         
-        samples.length = vedfh.veEnd;
-        samples.samples = (sensor_sample *)malloc(vedfh.veEnd * sizeof(sensor_sample));
+        samples->length = vedfh.veEnd;
+        samples->samples = (sensor_sample *)malloc(vedfh.veEnd * sizeof(sensor_sample));
         for (int ve_index = 0; ve_index < vedfh.veEnd; ve_index++)
         {
-            samples.samples[ve_index].key = vedfh.veName[ve_index];
-            samples.samples[ve_index].value = vedfh.veValue[ve_index];
+            samples->samples[ve_index].key = vedfh.veName[ve_index];
+            samples->samples[ve_index].value = vedfh.veValue[ve_index];
             
             ESP_LOGI(ve_log_prefix, "Name: %s, Value: %s", vedfh.veName[ve_index], vedfh.veValue[ve_index]);
         }
@@ -128,8 +128,13 @@ struct sensor_samples *bmv700_read()
         // char *loc_format = heap_caps_malloc(format_len + 1, MALLOC_CAP_8BIT);
         // strcpy(loc_format, format);
         // TODO: Create a simulator based on real data. Make it #if-conditional here.
+    } else {
+        ESP_LOGI(ve_log_prefix, "bmv700_read()- No data .");
+        samples->length = 0;
+        samples->samples = NULL;
+        return samples;
     }
-    return "";
+    
 #endif
 }
 

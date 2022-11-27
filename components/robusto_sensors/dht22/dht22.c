@@ -1,5 +1,6 @@
 #include "dht22.h"
 
+#if CONFIG_ROBUSTO_LOAD_DHT22 
 #include "driver/gpio.h"
 #include "DHT.h"
 #include "esp_log.h"
@@ -39,3 +40,5 @@ void dht22_init(char * _log_prefix) {
     ESP_LOGI(log_prefix, "DHT22 sensor initiated");
 
 }
+
+#endif

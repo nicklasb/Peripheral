@@ -5,6 +5,9 @@ extern "C"
 {
 #endif
 
+#include <sdkconfig.h>
+
+#if CONFIG_ROBUSTO_LOAD_DS1603L
     /*********************
      *      DEFINES
      *********************/
@@ -27,6 +30,7 @@ extern "C"
      *      MACROS
      **********************/
 
+#endif
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

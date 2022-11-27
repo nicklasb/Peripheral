@@ -19,11 +19,14 @@
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
-#include "esp_log.h"
-#include "driver/gpio.h"
+
 
 #include "DHT.h"
 
+#if CONFIG_ROBUSTO_LOAD_DHT22
+
+#include "esp_log.h"
+#include "driver/gpio.h"
 // == global defines =============================================
 
 static const char *TAG = "DHT";
@@ -237,3 +240,5 @@ int readDHT()
     else
         return DHT_CHECKSUM_ERROR;
 }
+
+#endif

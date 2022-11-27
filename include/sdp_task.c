@@ -346,7 +346,7 @@ void periodic_sensor_test(void *arg)
 
     struct sensor_samples *samples = bmv700_read();
     struct dht22_result dht22_res = dht22_read();
-
+    
     char * humidity;
     asprintf(&humidity, "%.2f", dht22_res.humidity);
 
@@ -365,6 +365,8 @@ void periodic_sensor_test(void *arg)
     asprintf(&total_awake_time, "%.2f", (double)get_total_time_awake()/(double)(1000000));
 
     uint8_t *message = NULL;
+
+    ESP_LOGI(log_prefix, "Making message.");
 
     int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s|%s|%s|%s|%s",
                           humidity, temperature, curr_time,  since_start, free_mem, 
