@@ -371,8 +371,10 @@ void periodic_sensor_test(void *arg)
     ESP_LOGI("sdf", "---------------------%s seconds, %i", curr_time, heap_caps_get_free_size(MALLOC_CAP_EXEC));
     int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s|%s|%s|%s|%s",
                           humidity, temperature, curr_time,  since_start, free_mem, 
-                          total_awake_time, get_sample_value(samples,"V"), get_sample_value(samples,"SOC"), 
-                          get_sample_value(samples,"I"), get_sample_value(samples,"VM")); 
+                          total_awake_time, get_sample_value_number(samples,"V", "%.3f", 0.001), 
+                          get_sample_value_number(samples,"SOC", "%.1f", 0.1), 
+                          get_sample_value_number(samples,"I", "%.3f", 0.001), 
+                          get_sample_value_number(samples,"VM", "%.3f", 0.001)); 
     sdp_peer *peer = sdp_mesh_find_peer_by_name("Controller");
 
     start_conversation(peer, DATA, "MQTT", message, data_length);

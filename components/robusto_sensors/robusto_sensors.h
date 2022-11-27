@@ -15,4 +15,6 @@ struct sensor_samples {
 
 char * get_sample_value(struct sensor_samples* samples, char * key);
 
+char * get_sample_value_number(struct sensor_samples* samples, char * key, char * format, float factor);
+
 #endif
