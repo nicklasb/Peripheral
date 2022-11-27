@@ -344,8 +344,6 @@ void periodic_sensor_test(void *arg)
     /* Note that the worker task is run on Core 1 (APP) as opposed to all the other callbacks. */
     //ESP_LOGI(log_prefix, "In periodic_sensor_query test on the peripheral.");
 
-    //char data[9] = "sensors\0";
-    //ESP_LOGI(log_prefix, "Reading VE.direct...");
     struct sensor_samples *samples = bmv700_read();
     struct dht22_result dht22_res = dht22_read();
 
@@ -368,7 +366,6 @@ void periodic_sensor_test(void *arg)
 
     uint8_t *message = NULL;
 
-    ESP_LOGI("sdf", "---------------------%s seconds, %i", curr_time, heap_caps_get_free_size(MALLOC_CAP_EXEC));
     int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s|%s|%s|%s|%s",
                           humidity, temperature, curr_time,  since_start, free_mem, 
                           total_awake_time, get_sample_value_number(samples,"V", "%.3f", 0.001), 
@@ -378,9 +375,6 @@ void periodic_sensor_test(void *arg)
     sdp_peer *peer = sdp_mesh_find_peer_by_name("Controller");
 
     start_conversation(peer, DATA, "MQTT", message, data_length);
-    
-    //ESP_LOGI(log_prefix, "VE done.");
-    //ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 2000000));
 }
 
 void init_sdp_task()
