@@ -27,6 +27,8 @@
 #include "orchestration/orchestration.h"
 #include "sleep/sleep.h"
 
+#include "test_data.h"
+
 // Testing
 esp_timer_handle_t periodic_timer;
 
@@ -359,12 +361,22 @@ void periodic_sensor_test(void *arg)
 
     char * total_awake_time;
     asprintf(&total_awake_time, "%.2f", (double)get_total_time_awake()/(double)(1000000));
-        
+
+    char * c_bmv700_V;
+    asprintf(&c_bmv700_V, "%.3f", (double)BMV_V[1] /(double)(1000));   
+    char * c_bmv700_SOC;
+    asprintf(&c_bmv700_SOC, "%.1f", (double)BMV_SOC[1] /(double)(10));   
+    char * c_bmv700_I;
+    asprintf(&c_bmv700_I, "%.3f", (double)BMV_I[1] /(double)(1000));   
+    char * c_bmv700_VM;
+    asprintf(&c_bmv700_VM, "%.3f", (double)BMV_VM[1] /(double)(1000));  
+    
     uint8_t *message = NULL;
 
     ESP_LOGI("sdf", "---------------------%s seconds, %i", curr_time, heap_caps_get_free_size(MALLOC_CAP_EXEC));
-    int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s",
-                          humidity, temperature, curr_time,  since_start, free_mem, total_awake_time); 
+    int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s|%s|%s|%s|%s",
+                          humidity, temperature, curr_time,  since_start, free_mem, 
+                          total_awake_time, c_bmv700_V, c_bmv700_SOC, c_bmv700_I, c_bmv700_VM); 
     sdp_peer *peer = sdp_mesh_find_peer_by_name("Controller");
 
     start_conversation(peer, DATA, "MQTT", message, data_length);
