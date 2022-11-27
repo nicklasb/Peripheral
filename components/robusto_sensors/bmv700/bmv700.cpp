@@ -6,11 +6,13 @@
 #include <HardwareSerial.h>
 #include "esp_log.h"
 
-#include <VeDirectFrameHandler.h>
 
+#include <VeDirectFrameHandler.h>
 #include <sdkconfig.h>
+
+
 #if CONFIG_ROBUSTO_BMV700_SIMULATION
-#include "test_data.h"
+#include "simulate/simulation_samples.h"
 #endif
 
 
@@ -98,13 +100,14 @@ void parse()
 
 struct sensor_samples *bmv700_read()
 {
-    struct sensor_samples *samples = (sensor_samples *)malloc(sizeof(samples));
+    
 #if CONFIG_ROBUSTO_BMV700_SIMULATION
     ESP_LOGI(ve_log_prefix, "Simulation data:");
-    samples->length = 30;
-    samples->samples = test_data1;
-    return samples;
+
+    return get_simulation_samples();
+    
 #else
+    struct sensor_samples *samples = (sensor_samples *)malloc(sizeof(samples));
     ReadVEData();
 
     parse();

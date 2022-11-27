@@ -1,12 +1,14 @@
-#include <sdkconfig.h>
+#include "simulation_samples.h"
 
 #if CONFIG_ROBUSTO_BMV700_SIMULATION
 
-#ifndef _TEST_DATA_H_
-#define _TEST_DATA_H_
+#include "robusto_sensors.h"
 
 #include "stdint.h"
-#include "../robusto_sensors.h"
+#include "stdlib.h"
+
+#include "esp_timer.h"
+
 
 struct sensor_sample test_data1[30] = {{"H1", "-281237"},
                                 {"H2", "0"},
@@ -99,5 +101,32 @@ struct sensor_sample test_data3[30] = {{"H1", "-281237"},
                                 {"BMV", "702"},
                                 {"FW", "308"}};
 
-#endif
+/**
+ * @brief Get simulation data randomly from either of the above datasets
+ * 
+ * @return struct sensor_samples* 
+ */
+struct sensor_samples * get_simulation_samples() {
+
+    struct sensor_samples *samples = (struct sensor_samples *)malloc(sizeof(struct sensor_samples));
+
+    samples->length = 30;
+    srand((unsigned int)esp_timer_get_time());
+    uint8_t random_int = rand() % 3;
+    if (random_int == 0) {
+        samples->samples = test_data1;
+    } else
+    if (random_int == 1) {
+        samples->samples = test_data2;
+    } else
+    if (random_int == 2) {
+        samples->samples = test_data3;
+    } 
+    
+    return samples;    
+
+}
+
+
+
 #endif
