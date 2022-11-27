@@ -15,11 +15,11 @@ extern "C"
 
 
 //#include <Stream.h>                                             // Generic Stream library, upon which a.o. Serial and SoftwareSerial are built.
-#include "../sensors_def.h"
+#include "../robusto_sensors.h"
 
 int bmv700_init(char *log_prefix);
 
-sensor_sample* bmv700_read();
+struct sensor_samples* bmv700_read();
 
 #endif
 

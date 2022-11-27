@@ -96,12 +96,14 @@ void parse()
     }
 }
 
-sensor_sample *bmv700_read()
+struct sensor_samples *bmv700_read()
 {
-
+    struct sensor_samples *samples = (sensor_samples *)malloc(sizeof(samples));
 #if CONFIG_ROBUSTO_BMV700_SIMULATION
-        ESP_LOGI(ve_log_prefix, "Simulation data:");
-        return test_data1;
+    ESP_LOGI(ve_log_prefix, "Simulation data:");
+    samples->length = 30;
+    samples->samples = test_data1;
+    return samples;
 #else
     ReadVEData();
 
@@ -109,11 +111,13 @@ sensor_sample *bmv700_read()
     if (vedfh.veEnd > 0)
     {
         ESP_LOGI(ve_log_prefix, "Current data:");
-        sensor_sample *samples = (sensor_sample *)malloc(vedfh.veEnd * sizeof(sensor_sample));
+        
+        samples.length = vedfh.veEnd;
+        samples.samples = (sensor_sample *)malloc(vedfh.veEnd * sizeof(sensor_sample));
         for (int ve_index = 0; ve_index < vedfh.veEnd; ve_index++)
         {
-            samples[ve_index].key = vedfh.veName[ve_index];
-            samples[ve_index].value = vedfh.veValue[ve_index];
+            samples.samples[ve_index].key = vedfh.veName[ve_index];
+            samples.samples[ve_index].value = vedfh.veValue[ve_index];
             
             ESP_LOGI(ve_log_prefix, "Name: %s, Value: %s", vedfh.veName[ve_index], vedfh.veValue[ve_index]);
         }

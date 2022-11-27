@@ -6,9 +6,9 @@
 #define _TEST_DATA_H_
 
 #include "stdint.h"
-#include "../sensors_def.h"
+#include "../robusto_sensors.h"
 
-sensor_sample test_data1[30] = {{"H1", "-281237"},
+struct sensor_sample test_data1[30] = {{"H1", "-281237"},
                                 {"H2", "0"},
                                 {"H3", "-81752"},
                                 {"H4", "19"},
@@ -38,7 +38,7 @@ sensor_sample test_data1[30] = {{"H1", "-281237"},
                                 {"AR", "128"},
                                 {"BMV", "702"},
                                 {"FW", "308"}};
-sensor_sample test_data2[30] = {{"H1", "-281237"},
+struct sensor_sample test_data2[30] = {{"H1", "-281237"},
                                 {"H2", "0"},
                                 {"H3", "-81752"},
                                 {"H4", "19"},
@@ -68,7 +68,7 @@ sensor_sample test_data2[30] = {{"H1", "-281237"},
                                 {"AR", "128"},
                                 {"BMV", "702"},
                                 {"FW", "308"}};
-sensor_sample test_data3[30] = {{"H1", "-281237"},
+struct sensor_sample test_data3[30] = {{"H1", "-281237"},
                                 {"H2", "0"},
                                 {"H3", "-81752"},
                                 {"H4", "19"},

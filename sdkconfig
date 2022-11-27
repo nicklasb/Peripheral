@@ -1919,15 +1919,13 @@ CONFIG_SDP_PEER_NAME="UNNAMEDPEER"
 # end of SDP Configuration
 
 #
-# SDP Configuration
+# Robusto sensors
 #
-
-#
-# BMV 700-configuration
-#
-# CONFIG_BMV700_SIMULATION is not set
-# end of BMV 700-configuration
-# end of SDP Configuration
+# CONFIG_ROBUSTO_LOAD_BMV700 is not set
+# CONFIG_ROBUSTO_LOAD_DHT22 is not set
+# CONFIG_ROBUSTO_LOAD_DS1603L is not set
+# CONFIG_ROBUSTO_LOAD_RESISTANCE is not set
+# end of Robusto sensors
 # end of Component config
 
 #

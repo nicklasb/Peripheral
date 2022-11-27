@@ -6,14 +6,18 @@
 #include "../secret/local_settings.h"
 
 #include <sdp_helpers.h>
-#include <sensor_ds1603l.h>
+
 #include <string.h>
 #include <esp_log.h>
 #include <driver/adc.h>
 #include <math.h>
 #include <time.h>
+
+#include <robusto_sensors.h>
 #include <bmv700.h>
 #include <dht22.h>
+#include <sensor_ds1603l.h>
+
 #include <esp_timer.h>
 #include <esp_heap_caps.h>
 
@@ -27,7 +31,7 @@
 #include "orchestration/orchestration.h"
 #include "sleep/sleep.h"
 
-#include "test_data.h"
+
 
 // Testing
 esp_timer_handle_t periodic_timer;
@@ -338,11 +342,11 @@ void init_sensors()
 void periodic_sensor_test(void *arg)
 {
     /* Note that the worker task is run on Core 1 (APP) as opposed to all the other callbacks. */
-    //ESP_LOGI(log_prefix, "In prediodic_sensor_query test on the peripheral.");
+    //ESP_LOGI(log_prefix, "In periodic_sensor_query test on the peripheral.");
 
     //char data[9] = "sensors\0";
     //ESP_LOGI(log_prefix, "Reading VE.direct...");
-    bmv700_read();
+    struct sensor_samples *samples = bmv700_read();
     struct dht22_result dht22_res = dht22_read();
 
     char * humidity;
@@ -361,22 +365,14 @@ void periodic_sensor_test(void *arg)
 
     char * total_awake_time;
     asprintf(&total_awake_time, "%.2f", (double)get_total_time_awake()/(double)(1000000));
-/*
-    char * c_bmv700_V;
-    asprintf(&c_bmv700_V, "%.3f", (double)BMV_V[1] /(double)(1000));   
-    char * c_bmv700_SOC;
-    asprintf(&c_bmv700_SOC, "%.1f", (double)BMV_SOC[1] /(double)(10));   
-    char * c_bmv700_I;
-    asprintf(&c_bmv700_I, "%.3f", (double)BMV_I[1] /(double)(1000));   
-    char * c_bmv700_VM;
-    asprintf(&c_bmv700_VM, "%.3f", (double)BMV_VM[1] /(double)(1000));  
-    */
+
     uint8_t *message = NULL;
 
     ESP_LOGI("sdf", "---------------------%s seconds, %i", curr_time, heap_caps_get_free_size(MALLOC_CAP_EXEC));
     int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s|%s|%s|%s|%s",
                           humidity, temperature, curr_time,  since_start, free_mem, 
-                          total_awake_time, c_bmv700_V, c_bmv700_SOC, c_bmv700_I, c_bmv700_VM); 
+                          total_awake_time, get_sample_value(samples,"V"), get_sample_value(samples,"SOC"), 
+                          get_sample_value(samples,"I"), get_sample_value(samples,"VM")); 
     sdp_peer *peer = sdp_mesh_find_peer_by_name("Controller");
 
     start_conversation(peer, DATA, "MQTT", message, data_length);
