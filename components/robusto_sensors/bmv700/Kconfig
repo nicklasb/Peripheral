@@ -1,0 +1,11 @@
+menu "BMV 700-configuration"
+    depends on ROBUSTO_LOAD_BMV700
+
+    config ROBUSTO_BMV700_SIMULATION
+        bool "Enable simulation mode"
+        default "n"
+        help
+            This enables simulation mode, which makes the library return example data instead of querying the device.
+            Normally, this is used for testing or display purposes.
+
+endmenu

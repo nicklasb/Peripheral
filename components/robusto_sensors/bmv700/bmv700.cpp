@@ -2,11 +2,17 @@
 
 #include "bmv700.h"
 
-//#include "SoftwareSerial.h"
+// #include "SoftwareSerial.h"
 #include <HardwareSerial.h>
 #include "esp_log.h"
 
 #include <VeDirectFrameHandler.h>
+
+#include <sdkconfig.h>
+#if CONFIG_ROBUSTO_BMV700_SIMULATION
+#include "test_data.h"
+#endif
+
 
 // Change this to reflect how your sensor is connected.
 const uint8_t txPin = 17; // Green - HW 17tx of the MCU to rx of the sensor
@@ -37,7 +43,6 @@ void HexCallback(const char *buffer, int size, void *data)
     ESP_LOGE(ve_log_prefix, "BMV700 hex frame:\n%s", tmp);
 }
 
-
 int prox(int val)
 {
     ESP_LOGI(ve_log_prefix, "V %i", val);
@@ -62,7 +67,7 @@ void ReadVEData()
             ESP_LOGI(ve_log_prefix, "VE.Direct - No data after 1000 ms.");
             return;
         }
-        //veSerial.perform_work();
+        // veSerial.perform_work();
     }
     ESP_LOGI(ve_log_prefix, "VE.Direct - %i bytes of data available.", veSerial.available());
 
@@ -86,32 +91,40 @@ void parse()
         for (int i = 0; i < bufi; i++)
         {
             vedfh.rxData(viewbuf[i]);
-            //veSerial.perform_work();
+            // veSerial.perform_work();
         }
     }
 }
 
-char* bmv700_read()
+sensor_sample *bmv700_read()
 {
+
+#if CONFIG_ROBUSTO_BMV700_SIMULATION
+        ESP_LOGI(ve_log_prefix, "Simulation data:");
+        return test_data1;
+#else
     ReadVEData();
 
     parse();
     if (vedfh.veEnd > 0)
     {
-        //char *loc_format = heap_caps_malloc(format_len + 1, MALLOC_CAP_8BIT);
-        //strcpy(loc_format, format);
-// TODO: Create a simulator based on real data
-
         ESP_LOGI(ve_log_prefix, "Current data:");
+        sensor_sample *samples = (sensor_sample *)malloc(vedfh.veEnd * sizeof(sensor_sample));
         for (int ve_index = 0; ve_index < vedfh.veEnd; ve_index++)
         {
-
+            samples[ve_index].key = vedfh.veName[ve_index];
+            samples[ve_index].value = vedfh.veValue[ve_index];
+            
             ESP_LOGI(ve_log_prefix, "Name: %s, Value: %s", vedfh.veName[ve_index], vedfh.veValue[ve_index]);
         }
+        return samples;        
+        // char *loc_format = heap_caps_malloc(format_len + 1, MALLOC_CAP_8BIT);
+        // strcpy(loc_format, format);
+        // TODO: Create a simulator based on real data. Make it #if-conditional here.
     }
     return "";
+#endif
 }
-
 
 int bmv700_init(char *log_prefix)
 {

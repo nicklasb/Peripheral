@@ -1,0 +1,32 @@
+menu "Robusto sensors"
+
+
+      
+    config ROBUSTO_LOAD_BMV700
+        bool "BMV700"
+        default n
+        help
+            Load library to read VE.Direct data from the Victron BMW700 series of battery monitors 
+    
+    rsource "bmv700/Kconfig"    
+    config ROBUSTO_LOAD_DHT22
+        bool "DHT22"
+        default n
+        help
+            Load library to get data from the DHT22 temperature and humidity sensor. 
+    rsource "dht22/Kconfig"
+     
+    config ROBUSTO_LOAD_DS1603L
+    bool "DS1603L"
+    default n
+    help
+        Load library to get data from the DHT22 temperature and humidity sensor. 
+    rsource "ds1603l/Kconfig" 
+
+    config ROBUSTO_LOAD_RESISTANCE
+        bool "Resistance sensors"
+        default n
+        help
+            Load library to get data from resistor-based sensors using voltage dividers.     
+
+endmenu
