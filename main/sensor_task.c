@@ -1,14 +1,13 @@
-#include "sdp_task.h"
-#include "sdp.h"
-#include "sdp_messaging.h"
-#include "sdp_worker.h"
+#include "sensor_task.h"
+#include "robusto_logging.h"
+#include "robusto_message.h"
+#include "robusto_queue.h"
 
 #include "../secret/local_settings.h"
-
-#include <sdp_helpers.h>
+>
 
 #include <string.h>
-#include <esp_log.h>
+
 #include <driver/adc.h>
 #include <math.h>
 #include <time.h>
@@ -27,10 +26,11 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "sdp_mesh.h"
+
 #include "orchestration/orchestration.h"
 #include "sleep/sleep.h"
 
+char * tasks_log_prefix = "Peripheral-task";
 
 
 // Testing
@@ -44,7 +44,7 @@ esp_timer_handle_t periodic_timer;
 int do_on_filter_request(struct work_queue_item *work_item)
 {
 
-    ESP_LOGD(log_prefix, "In filter request callback on the peripheral!");
+    ROB_LOGD(tasks_log_prefix, "In filter request callback on the peripheral!");
 
     /* Allow the data to be imported */
     return 0;
@@ -57,7 +57,7 @@ int do_on_filter_request(struct work_queue_item *work_item)
  */
 int do_on_filter_data(struct work_queue_item *work_item)
 {
-    ESP_LOGD(log_prefix, "In filter data callback on the peripheral!");
+    ROB_LOGD(tasks_log_prefix, "In filter data callback on the peripheral!");
 
     /* Allow the data to be imported */
     return 0;
@@ -71,10 +71,10 @@ int do_on_filter_data(struct work_queue_item *work_item)
 void do_on_priority(work_queue_item_t *work_item)
 {
 
-    ESP_LOGI(log_prefix, "In ble data callback on the peripheral!");
+    ROB_LOGI(tasks_log_prefix, "In ble data callback on the peripheral!");
     if (strcmp((char *)(work_item->raw_data), (char *)"status") == 0)
     {
-        ESP_LOGD(log_prefix, "Got asked for status!");
+        ROB_LOGD(tasks_log_prefix, "Got asked for status!");
     }
     sdp_cleanup_queue_task(work_item);
 }
@@ -118,13 +118,13 @@ float read_190_Straight_Ohm_level_meter()
         {
             raw_height = 0;
         }
-        ESP_LOGI(log_prefix, "190K: raw_height = %f, Vout = %f, Rf= %f, Rt = %fadc_out = %i ", raw_height, Vout, Rf, Rt, adc_out);
+        ROB_LOGI(tasks_log_prefix, "190K: raw_height = %f, Vout = %f, Rf= %f, Rt = %fadc_out = %i ", raw_height, Vout, Rf, Rt, adc_out);
 
         return raw_height;
     }
     else
     {
-        ESP_LOGE(log_prefix, "In read_190k_level_meter() Parameter error, sending -9999.");
+        ROB_LOGE(tasks_log_prefix, "In read_190k_level_meter() Parameter error, sending -9999.");
         return -99;
     }
     // return (float)(100-(adc1_get_raw(ADC1_CHANNEL_6)-2060)/20.36);
@@ -150,7 +150,7 @@ float calc_resistance(int adc_in, int adc_max, float Vs, float Vfs, float Rk, fl
     // Calculate total unknown resistance
     float Rt = Rk * Vout / (Vs - Vout);
     // Adjust for extra resistor (often used to push voltages into a better measurement region)
-    ESP_LOGI(log_prefix, "calc_resistance:\n\
+    ROB_LOGI(tasks_log_prefix, "calc_resistance:\n\
     adc_in = %i => adc_cal = %f\n\
     Vout = %f = adc_cal * Vfs / adc_max = %f * %f / %i\n\
     Rt = %f = Rk * Vout / (Vs - Vout) = %f * %f / (%f - %f)\n\
@@ -213,10 +213,10 @@ float read_180_ohm_lever_level_meter()
         // Is it below the blind spot?
         if (cal_height < Hb)
         {
-            ESP_LOGI(log_prefix, "Lever sensor: raw_height (%f) is below blind spot (%f) ,setting to 0.", raw_height, Hb);
+            ROB_LOGI(tasks_log_prefix, "Lever sensor: raw_height (%f) is below blind spot (%f) ,setting to 0.", raw_height, Hb);
             cal_height = 0;
         }
-        ESP_LOGI(log_prefix, "Lever sensor:\n    raw_height = %f = (Rf / Rm * Hs) + Hf = (%f / %f * %f) + %f\n"
+        ROB_LOGI(tasks_log_prefix, "Lever sensor:\n    raw_height = %f = (Rf / Rm * Hs) + Hf = (%f / %f * %f) + %f\n"
                 "    cal_height = (raw_heigh + lever_LUT_value) = (%f + %f) = %f",
                 raw_height, Rf, Rm, Hs, Hf, raw_height, lever_LUT_value[j], cal_height);
 
@@ -224,7 +224,7 @@ float read_180_ohm_lever_level_meter()
     }
     else
     {
-        ESP_LOGE(log_prefix, "Lever sensor: In read_190k_level_meter() Parameter error, sending -9999.");
+        ROB_LOGE(tasks_log_prefix, "Lever sensor: In read_190k_level_meter() Parameter error, sending -9999.");
         return -99;
     }
     // return (float)(100-(adc1_get_raw(ADC1_CHANNEL_6)-2060)/20.36);
@@ -244,16 +244,16 @@ float read_10k_thermistor()
     {
         adc_out = ADC_LUT[(int)adc_out];
         float Vout = adc_out * Vs / adcMax;
-        ESP_LOGI(log_prefix, "2 Vout_Raw = %f", Vout);
+        ROB_LOGI(tasks_log_prefix, "2 Vout_Raw = %f", Vout);
 
         float Rt = 9290 * Vout / (Vs - Vout);
         float T = 1 / (1 / 298.15 + log(Rt / 10000) / beta);
-        ESP_LOGI(log_prefix, "2 Vout = %f, Rt = %f, T(K) = %f T(C) = %f", Vout, Rt, T, T - 273.15);
+        ROB_LOGI(tasks_log_prefix, "2 Vout = %f, Rt = %f, T(K) = %f T(C) = %f", Vout, Rt, T, T - 273.15);
         return T - 273.15;
     }
     else
     {
-        ESP_LOGE(log_prefix, "In read_10k_thermistor() Parameter error, sending -9999.");
+        ROB_LOGE(tasks_log_prefix, "In read_10k_thermistor() Parameter error, sending -9999.");
         return -99;
     }
 }
@@ -273,31 +273,31 @@ int make_sensors_message(uint8_t **message)
 void do_on_work(work_queue_item_t *work_item)
 {
 
-    ESP_LOGI(log_prefix, "In do_on_work task on the peripheral, got a message:\n");
+    ROB_LOGI(tasks_log_prefix, "In do_on_work task on the peripheral, got a message:\n");
     for (int i = 0; i < work_item->partcount; i++)
     {
-        ESP_LOGI(log_prefix, "Message part %i: \"%s\"", i, work_item->parts[i]);
+        ROB_LOGI(tasks_log_prefix, "Message part %i: \"%s\"", i, work_item->parts[i]);
     }
 
     uint8_t *reply_data = NULL;
     int reply_length = 0;
     if (strcmp((char *)(work_item->parts[0]), "status") == 0)
     {
-        ESP_LOGI(log_prefix, "Is it a status message");
+        ROB_LOGI(tasks_log_prefix, "Is it a status message");
         reply_length = make_status_message(&reply_data);
     }
     else if (strcmp((char *)(work_item->parts[0]), "sensors") == 0)
     {
-        ESP_LOGI(log_prefix, "Is it a sensor request message");
+        ROB_LOGI(tasks_log_prefix, "Is it a sensor request message");
 
         reply_length = make_sensors_message(&reply_data);
     }
 
     /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
-    ESP_LOGD(log_prefix, "In do_on_work task, responding to the controller. Conversation id = %u", work_item->conversation_id);
+    ROB_LOGD(tasks_log_prefix, "In do_on_work task, responding to the controller. Conversation id = %u", work_item->conversation_id);
     if (reply_data == NULL)
     {
-        ESP_LOGI(log_prefix, "Reply empty for some reason");
+        ROB_LOGI(tasks_log_prefix, "Reply empty for some reason");
     }
     else
     {
@@ -312,28 +312,28 @@ void do_on_work(work_queue_item_t *work_item)
 
 void init_sensors()
 {
-    //init_ds1603l(log_prefix);
+    //init_ds1603l(tasks_log_prefix);
 
-    bmv700_init(log_prefix);
+    bmv700_init(tasks_log_prefix);
     if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK)
     {
-        ESP_LOGI(log_prefix, "eFuse Two Point: Supported\n");
+        ROB_LOGI(tasks_log_prefix, "eFuse Two Point: Supported\n");
     }
     else
     {
-        ESP_LOGI(log_prefix, "eFuse Two Point: NOT supported\n");
+        ROB_LOGI(tasks_log_prefix, "eFuse Two Point: NOT supported\n");
     }
 
     // Check Vref is burned into eFuse
     if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF) == ESP_OK)
     {
-        ESP_LOGI(log_prefix, "eFuse Vref: Supported\n");
+        ROB_LOGI(tasks_log_prefix, "eFuse Vref: Supported\n");
     }
     else
     {
-        ESP_LOGI(log_prefix, "eFuse Vref: NOT supported\n");
+        ROB_LOGI(tasks_log_prefix, "eFuse Vref: NOT supported\n");
     }
-    dht22_init(log_prefix);
+    dht22_init(tasks_log_prefix);
 }
 /**
  * @brief This is periodically waking up the controller, sends a request for sensor data
@@ -342,7 +342,7 @@ void init_sensors()
 void periodic_sensor_test(void *arg)
 {
     /* Note that the worker task is run on Core 1 (APP) as opposed to all the other callbacks. */
-    //ESP_LOGI(log_prefix, "In periodic_sensor_query test on the peripheral.");
+    //ROB_LOGI(tasks_log_prefix, "In periodic_sensor_query test on the peripheral.");
 
     struct sensor_samples *samples = bmv700_read();
     struct dht22_result dht22_res = dht22_read();
@@ -363,10 +363,10 @@ void periodic_sensor_test(void *arg)
 
     char * total_awake_time;
     asprintf(&total_awake_time, "%.2f", (double)get_total_time_awake()/(double)(1000000));
-
+    
     uint8_t *message = NULL;
 
-    ESP_LOGI(log_prefix, "Making message.");
+    ROB_LOGI(tasks_log_prefix, "Making message.");
 
     int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s|%s|%s|%s|%s",
                           humidity, temperature, curr_time,  since_start, free_mem, 
@@ -379,10 +379,10 @@ void periodic_sensor_test(void *arg)
     start_conversation(peer, DATA, "MQTT", message, data_length);
 }
 
-void init_sdp_task()
+void init_sensor_task()
 {
-    sdp_init(&do_on_work, &do_on_priority, "Peripheral\0", false);
-    ESP_LOGI(log_prefix, "init_sdp_task() %i", (int)do_on_work);
+    sdp_init(&do_on_work, &do_on_priority, NULL, "Peripheral\0", false);
+    ROB_LOGI(tasks_log_prefix, "init_sdp_task() %i", (int)do_on_work);
     sdp_peer* peer = sdp_add_init_new_peer("Controller", local_hosts[0].base_mac_address, SDP_MT_ESPNOW);
 
     init_sensors();

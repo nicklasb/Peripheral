@@ -11,7 +11,7 @@
 
 #include <Arduino.h>
 
-#include <sdp_task.h>
+#include <sensor_task.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 

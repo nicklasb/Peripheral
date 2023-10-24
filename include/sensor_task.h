@@ -15,7 +15,7 @@
      * GLOBAL PROTOTYPES
      **********************/
 
-    void init_sdp_task();
+    void init_sensor_task();
     
     /**********************
      *      MACROS

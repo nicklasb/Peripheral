@@ -1,5 +1,4 @@
-#ifndef _ROBUSTO_SENSORS_H_
-#define _ROBUSTO_SENSORS_H_
+#pragma once
 
 #include "stdint.h"
 
@@ -17,4 +16,3 @@ char * get_sample_value(struct sensor_samples* samples, char * key);
 
 char * get_sample_value_number(struct sensor_samples* samples, char * key, char * format, float factor);
 
-#endif

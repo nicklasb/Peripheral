@@ -109,7 +109,12 @@ struct sensor_samples *bmv700_read()
 #else
     struct sensor_samples *samples = (sensor_samples *)malloc(sizeof(struct sensor_samples));
     ReadVEData();
-
+    parse();    
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    ReadVEData();
+    parse();    
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    ReadVEData();
     parse();
     if (vedfh.veEnd > 0)
     {
