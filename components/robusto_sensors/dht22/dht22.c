@@ -1,7 +1,8 @@
 #include "dht22.h"
 
 #if CONFIG_ROBUSTO_LOAD_DHT22 
-#include "driver/gpio.h"
+#include "hal/gpio_types.h"
+#include <robusto_system.h>
 #include "DHT.h"
 #include "esp_log.h"
 
@@ -32,8 +33,8 @@ struct dht22_result dht22_read() {
 void dht22_init(char * _log_prefix) {
     log_prefix = _log_prefix;
 
-    gpio_set_direction(GPIO_NUM_5, GPIO_MODE_INPUT);
-    gpio_set_pull_mode(GPIO_NUM_5,GPIO_PULLUP_ONLY);
+    robusto_gpio_set_direction(GPIO_NUM_5, false);
+    robusto_gpio_set_pullup(GPIO_NUM_5, true);
     setDHTgpio(GPIO_NUM_5);
     /* Make a read just to wake up the sensor */
     readDHT();

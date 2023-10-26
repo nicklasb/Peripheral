@@ -26,7 +26,8 @@
 #if CONFIG_ROBUSTO_LOAD_DHT22
 
 #include "esp_log.h"
-#include "driver/gpio.h"
+#include "hal/gpio_types.h"
+#include <robusto_system.h>
 // == global defines =============================================
 
 static const char *TAG = "DHT";
@@ -83,7 +84,7 @@ int getSignalLevel(int usTimeOut, bool state)
 {
 
     int uSec = 0;
-    while (gpio_get_level(DHTgpio) == state)
+    while (robusto_gpio_get_level(DHTgpio) == state)
     {
 
         if (uSec > usTimeOut)
@@ -151,17 +152,17 @@ int readDHT()
 
     // == Send start signal to DHT sensor ===========
 
-    gpio_set_direction(DHTgpio, GPIO_MODE_OUTPUT);
+    robusto_gpio_set_direction(DHTgpio, GPIO_MODE_OUTPUT);
 
     // pull down for 3 ms for a smooth and nice wake up
-    gpio_set_level(DHTgpio, 0);
+    robusto_gpio_set_level(DHTgpio, 0);
     esp_rom_delay_us(3000);
 
     // pull up for 25 us for a gentile asking for data
-    gpio_set_level(DHTgpio, 1);
+    robusto_gpio_set_level(DHTgpio, 1);
     esp_rom_delay_us(25);
 
-    gpio_set_direction(DHTgpio, GPIO_MODE_INPUT); // change to input mode
+    robusto_gpio_set_direction(DHTgpio, false); // change to input mode
 
     // == DHT will keep the line low for 80 us and then high for 80us ====
 

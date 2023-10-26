@@ -1,0 +1,10 @@
+dependencies:
+  # Required IDF version
+  idf: ">=4.1"
+  espressif/arduino-esp32: # "^3.0.0-alpha2"
+    git: https://github.com/espressif/arduino-esp32.git
+  robusto:
+    git: https://github.com/RobustoFramework/Robusto.git
+    path: components/robusto
+    version: "Add-UMTS/GSM-support"
+    

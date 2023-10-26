@@ -1,10 +1,12 @@
 #include "sensor_task.h"
-#include "robusto_logging.h"
-#include "robusto_message.h"
-#include "robusto_queue.h"
-
+#include <robusto_init.h>
+#include <robusto_logging.h>
+#include <robusto_message.h>
+#include <robusto_queue.h>
+#include <robusto_umts.h>
+#include <robusto_incoming.h>
 #include "../secret/local_settings.h"
->
+
 
 #include <string.h>
 
@@ -21,14 +23,15 @@
 #include <esp_heap_caps.h>
 
 #include "LUT.h"
+#include "driver/adc.h"
 #include "esp_adc_cal.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 
-#include "orchestration/orchestration.h"
-#include "sleep/sleep.h"
+#include <robusto_conductor.h>
+#include <robusto_sleep.h>
 
 char * tasks_log_prefix = "Peripheral-task";
 
@@ -39,9 +42,9 @@ esp_timer_handle_t periodic_timer;
 /**
  * @brief Takes a closer look on the incoming request queue item, does it need urgent attention?
  *
- * @param work_item
+ * @param message
  */
-int do_on_filter_request(struct work_queue_item *work_item)
+int do_on_filter_request(robusto_message_t *message)
 {
 
     ROB_LOGD(tasks_log_prefix, "In filter request callback on the peripheral!");
@@ -53,9 +56,9 @@ int do_on_filter_request(struct work_queue_item *work_item)
 /**
  * @brief Takes a closer look on the incoming data queue item, does it need urgent attention?
  *
- * @param work_item
+ * @param message
  */
-int do_on_filter_data(struct work_queue_item *work_item)
+int do_on_filter_data(robusto_message_t *message)
 {
     ROB_LOGD(tasks_log_prefix, "In filter data callback on the peripheral!");
 
@@ -66,22 +69,23 @@ int do_on_filter_data(struct work_queue_item *work_item)
 /**
  * @brief Handle priority messages
  *
- * @param work_item
+ * @param message
  */
-void do_on_priority(work_queue_item_t *work_item)
+void do_on_priority(robusto_message_t *message)
 {
 
     ROB_LOGI(tasks_log_prefix, "In ble data callback on the peripheral!");
-    if (strcmp((char *)(work_item->raw_data), (char *)"status") == 0)
+    if (strcmp((char *)(message->raw_data), (char *)"status") == 0)
     {
         ROB_LOGD(tasks_log_prefix, "Got asked for status!");
     }
-    sdp_cleanup_queue_task(work_item);
+    
+
 }
 
 int make_status_message(uint8_t **message)
 {
-    return add_to_message(message, "%s|%.1f seconds|%i bytes|%.2f C",
+    return build_strings_data(message, "%s|%.1f seconds|%i bytes|%.2f C",
                           "running",
                           (float)esp_timer_get_time() / 1000000,
                           heap_caps_get_free_size(MALLOC_CAP_8BIT), 0.5);
@@ -91,8 +95,8 @@ float read_190_Straight_Ohm_level_meter()
 {
     // Tested: EBM Liquid level sensor S3 300
     // Actual ohm range: 0.4 to 191.4
-    adc1_config_width(ADC_WIDTH_12Bit);
-    adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_11db);
+    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_DB_11);
     float adcMax = 4095; // ADC resolution 12-bit, TODO: Use in formula for clarity
     float Vs = 5;        // supply voltage
     float Vfs = 3.3;     // Full-scale voltage (given 3.3 volts above)
@@ -167,8 +171,8 @@ float read_180_ohm_lever_level_meter()
 {
     // Tested: Lever sensor (from 1980)
     // Actual ohm range: 0.4 to 191.4
-    adc1_config_width(ADC_WIDTH_12Bit);
-    adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_11db);
+    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_DB_11);
     // ESP32 data
     float adc_max = 4095; // ADC steps with 12-bit resolution
     float Vs = 3.3;       // supply voltage
@@ -232,8 +236,8 @@ float read_180_ohm_lever_level_meter()
 
 float read_10k_thermistor()
 {
-    adc1_config_width(ADC_WIDTH_12Bit);
-    adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_11db);
+    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_DB_11);
     float adcMax = 4095; // ADC resolution 12-bit
     float Vs = 3.3;      // supply voltage
     int beta = 3950;     // Beta from manufacturer
@@ -269,24 +273,24 @@ int make_sensors_message(uint8_t **message)
     // return add_to_message(message, "%.2f|%.2f|%i", read_180_ohm_lever_level_meter(), read_10k_thermistor(),ds1603l_read());
     // return add_to_message(message, "%i|dfdfg", ds1603l_read());
 }
-
-void do_on_work(work_queue_item_t *work_item)
+#if 0
+void do_on_work(robust_message_t *message)
 {
 
     ROB_LOGI(tasks_log_prefix, "In do_on_work task on the peripheral, got a message:\n");
-    for (int i = 0; i < work_item->partcount; i++)
+    for (int i = 0; i < message->stringcount; i++)
     {
-        ROB_LOGI(tasks_log_prefix, "Message part %i: \"%s\"", i, work_item->parts[i]);
+        ROB_LOGI(tasks_log_prefix, "Message part %i: \"%s\"", i, message->strings[i]);
     }
 
     uint8_t *reply_data = NULL;
     int reply_length = 0;
-    if (strcmp((char *)(work_item->parts[0]), "status") == 0)
+    if (strcmp((char *)(message->strings[0]), "status") == 0)
     {
         ROB_LOGI(tasks_log_prefix, "Is it a status message");
         reply_length = make_status_message(&reply_data);
     }
-    else if (strcmp((char *)(work_item->parts[0]), "sensors") == 0)
+    else if (strcmp((char *)(message->strings[0]), "sensors") == 0)
     {
         ROB_LOGI(tasks_log_prefix, "Is it a sensor request message");
 
@@ -294,21 +298,20 @@ void do_on_work(work_queue_item_t *work_item)
     }
 
     /* Note that the worker task is run on Core 1 (APP) as upposed to all the other callbacks. */
-    ROB_LOGD(tasks_log_prefix, "In do_on_work task, responding to the controller. Conversation id = %u", work_item->conversation_id);
+    ROB_LOGD(tasks_log_prefix, "In do_on_work task, responding to the controller. Conversation id = %u", message->conversation_id);
     if (reply_data == NULL)
     {
         ROB_LOGI(tasks_log_prefix, "Reply empty for some reason");
     }
     else
     {
-        sdp_reply(*work_item, DATA, reply_data, reply_length);
+        sdp_reply(*message, DATA, reply_data, reply_length);
         free(reply_data);
     }
 
-    /* Always call the cleanup crew when done */
-    sdp_cleanup_queue_task(work_item);
 
 }
+#endif
 
 void init_sensors()
 {
@@ -357,33 +360,33 @@ void periodic_sensor_test(void *arg)
     asprintf(&curr_time, "%.2f", (double)esp_timer_get_time()/(double)(1000000));
 
     char * since_start;
-    asprintf(&since_start, "%.2f", (double)get_time_since_start()/(double)(1000000));
+    asprintf(&since_start, "%.2f", (double)robusto_conductor_server_get_time_since_start()/(double)(1000000));
 
     int free_mem = heap_caps_get_free_size(MALLOC_CAP_8BIT);
 
     char * total_awake_time;
-    asprintf(&total_awake_time, "%.2f", (double)get_total_time_awake()/(double)(1000000));
+    asprintf(&total_awake_time, "%.2f", (double)robusto_get_total_time_awake()/(double)(1000000));
     
     uint8_t *message = NULL;
 
     ROB_LOGI(tasks_log_prefix, "Making message.");
 
-    int data_length = add_to_message(&message, "report|%s|%s|%s|%s|%i|%s|%s|%s|%s|%s",
+    int data_length = build_strings_data(&message, "report|%s|%s|%s|%s|%i|%s|%s|%s|%s|%s",
                           humidity, temperature, curr_time,  since_start, free_mem, 
                           total_awake_time, get_sample_value_number(samples,"V", "%.3f", 0.001), 
                           get_sample_value_number(samples,"SOC", "%.1f", 0.1), 
                           get_sample_value_number(samples,"I", "%.3f", 0.001), 
                           get_sample_value_number(samples,"VM", "%.3f", 0.001)); 
-    sdp_peer *peer = sdp_mesh_find_peer_by_name("Controller");
-
-    start_conversation(peer, DATA, "MQTT", message, data_length);
+    robusto_peer_t *peer = robusto_peers_find_peer_by_name("Controller");
+    send_message_strings(peer, ROBUSTO_MQTT_SERVICE_ID, 0, message, data_length, NULL);
 }
 
 void init_sensor_task()
 {
-    sdp_init(&do_on_work, &do_on_priority, NULL, "Peripheral\0", false);
-    ROB_LOGI(tasks_log_prefix, "init_sdp_task() %i", (int)do_on_work);
-    sdp_peer* peer = sdp_add_init_new_peer("Controller", local_hosts[0].base_mac_address, SDP_MT_ESPNOW);
+    init_robusto();
+   //robusto_register_handler(&do_on_work);
+    
+    robusto_peer_t * peer = robusto_add_init_new_peer("Controller", local_hosts[0].base_mac_address, robusto_mt_espnow);
 
     init_sensors();
     /* Allow for some communication between the peripheral and the controller */
@@ -397,5 +400,5 @@ void init_sensor_task()
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
     ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 200000));
 
-    give_control(peer); 
+    robusto_conductor_client_give_control(peer); 
 }

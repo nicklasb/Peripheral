@@ -30,8 +30,9 @@
 
 void app_main()
 {
+    
     //initArduino();
-    init_sdp_task();
+    init_sensor_task();
 
     // Suppose we need this as we are arduino:ing here.
     while (1) {

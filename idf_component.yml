@@ -1,7 +1,0 @@
-dependencies:
-  # Required IDF version
-  idf: ">=4.1"
-  arduino-esp32: "^3.0.0-alpha2"
-  robusto:
-    git: https://github.com/RobustoFramework/Robusto.git
-    path: components/robusto

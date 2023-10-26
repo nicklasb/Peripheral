@@ -1,3 +1,3 @@
 FILE(GLOB_RECURSE sources ./*.*)
 idf_component_register(SRCS ${sources} INCLUDE_DIRS .
-REQUIRES robusto_sensors) 
+REQUIRES robusto robusto_sensors) 
