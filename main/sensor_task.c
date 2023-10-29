@@ -360,7 +360,7 @@ void periodic_sensor_test(void *arg)
     asprintf(&curr_time, "%.2f", (double)esp_timer_get_time()/(double)(1000000));
 
     char * since_start;
-    asprintf(&since_start, "%.2f", (double)robusto_conductor_server_get_time_since_start()/(double)(1000000));
+    asprintf(&since_start, "%.2f", 1.0); //(double)robusto_conductor_server_get_time_since_start()/(double)(1000000));
 
     int free_mem = heap_caps_get_free_size(MALLOC_CAP_8BIT);
 
@@ -383,10 +383,11 @@ void periodic_sensor_test(void *arg)
 
 void init_sensor_task()
 {
+
     init_robusto();
    //robusto_register_handler(&do_on_work);
     
-    robusto_peer_t * peer = robusto_add_init_new_peer("Controller", local_hosts[0].base_mac_address, robusto_mt_espnow);
+    robusto_peer_t * peer = robusto_add_init_new_peer(local_hosts[2].hostname, local_hosts[2].base_mac_address, robusto_mt_espnow);
 
     init_sensors();
     /* Allow for some communication between the peripheral and the controller */

@@ -1,3 +1,0 @@
-[submodule "components/espsoftwareserial"]
-	path = components/espsoftwareserial
-	url = https://github.com/plerup/espsoftwareserial.git

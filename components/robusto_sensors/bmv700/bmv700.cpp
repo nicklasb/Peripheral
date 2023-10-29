@@ -1,14 +1,20 @@
 
 
 #include "bmv700.h"
-
 // #include "SoftwareSerial.h"
+#ifdef ARDUINO
 #include <HardwareSerial.h>
-#include "esp_log.h"
+#endif
+#ifdef ESP_PLATFORM
 
+#include <driver/uart.h>
+#include <esp_log.h>
+#include <string.h>
+#endif
+#include <robusto_time.h>
 
 #include <VeDirectFrameHandler.h>
-#include <sdkconfig.h>
+
 
 
 #if CONFIG_ROBUSTO_BMV700_SIMULATION
@@ -17,8 +23,11 @@
 
 
 // Change this to reflect how your sensor is connected.
-const uint8_t txPin = 17; // Green - HW 17tx of the MCU to rx of the sensor
-const uint8_t rxPin = 16; // Yellow - HW 16
+#define BMV700_TX_PIN 17 // Green - HW 17tx of the MCU to rx of the sensor
+#define BMV700_RX_PIN 16 // Yellow - HW 16
+#define BMV700_RX_BUF_SIZE 2000 
+#define BMV700_TX_BUF_SIZE 2000
+#define BMV700_RX_TIMEOUT_MS 1000
 
 SemaphoreHandle_t xBMVSemaphore;
 
@@ -27,7 +36,18 @@ char viewbuf[1000];
 int bufi;
 
 // Use UART 1
+#ifdef ARDUINO
 HardwareSerial veSerial(1);
+#endif
+#ifdef ESP_PLATFORM
+uart_config_t uart_config = {
+    .baud_rate = 19200,  // Set your desired baud rate
+    .data_bits = UART_DATA_8_BITS,
+    .parity = UART_PARITY_DISABLE,
+    .stop_bits = UART_STOP_BITS_1,
+    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+};
+#endif
 
 VeDirectFrameHandler vedfh;
 
@@ -54,17 +74,23 @@ int prox(int val)
 void ReadVEData()
 {
     ESP_LOGI(ve_log_prefix, "In read VEData()");
-    bufi = 0;
-    static unsigned long wait_millis = millis();
+    #ifdef ESP_PLATFORM
+    bufi = uart_read_bytes(UART_NUM_1, viewbuf, BMV700_RX_BUF_SIZE, BMV700_RX_TIMEOUT_MS / portTICK_PERIOD_MS);
+    #else
+
 
     // if (!veSerial.available()) {
     //     ESP_LOGI(ve_log_prefix, "VE.Direct - Waiting.");
     // }
     // veSerial.flush();
+
+    bufi = 0;
+    static unsigned long wait_millis = r_millis();
+
     while (!veSerial.available())
     {
 
-        if (millis() - wait_millis > 1000)
+        if (r_millis() - wait_millis > BMV700_RX_TIMEOUT_MS)
         {
             ESP_LOGI(ve_log_prefix, "VE.Direct - No data after 1000 ms.");
             return;
@@ -80,6 +106,7 @@ void ReadVEData()
 
         bufi++;
     }
+    #endif
 }
 
 void parse()
@@ -149,18 +176,27 @@ int bmv700_init(char *log_prefix)
     xBMVSemaphore = xSemaphoreCreateMutex();
     ve_log_prefix = log_prefix;
 
+    #ifdef ESP_PLATFORM
+    uart_param_config(UART_NUM_1, &uart_config);
+    uart_set_pin(UART_NUM_1, BMV700_TX_PIN, BMV700_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    uart_driver_install(UART_NUM_1, BMV700_RX_BUF_SIZE, BMV700_TX_BUF_SIZE, 0, NULL, 0);
+    #endif
     // rx of the Arduino to tx of the sensor
-    veSerial.begin(19200, SERIAL_8N1, rxPin, txPin, false, 1000); // VE.direct is at 19200 bps.
+    #ifdef ARDUINO
+    veSerial.begin(19200, SERIAL_8N1, BMV700_RX_PIN, BMV700_TX_PIN, false, 1000); // VE.direct is at 19200 bps.
 
     if (!veSerial)
     { // If the object did not initialize, then its configuration is invalid
         ESP_LOGE(ve_log_prefix, "Invalid SoftwareSerial pin configuration, check config");
     }
     veSerial.flush();
+    #endif
+
+
     vedfh.setErrorHandler(&static_log_e);
     // hex protocol callback
     vedfh.addHexCallback(&HexCallback, (void *)42);
-    ESP_LOGI(ve_log_prefix, "VE.Direct interface successfully initiated. rxPin = %i, txPin = %i", rxPin, txPin);
+    ESP_LOGI(ve_log_prefix, "VE.Direct interface successfully initiated. rxPin = %i, txPin = %i", BMV700_RX_PIN, BMV700_TX_PIN);
 
     return 0;
 }
