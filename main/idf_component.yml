@@ -7,4 +7,3 @@ dependencies:
     git: https://github.com/RobustoFramework/Robusto.git
     path: components/robusto
     version: "Add-UMTS/GSM-support"
-    

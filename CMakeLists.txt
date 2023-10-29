@@ -3,5 +3,4 @@ include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 # TODO: Convince ESP-IDF to nest components
 set(EXTRA_COMPONENT_DIRS ${EXTRA_COMPONENT_DIRS} components/robusto_sensors/bmv700 components/robusto_sensors/dht22 components/robusto_sensors/ds1603l) 
-set(EXCLUDE_COMPONENTS lvgl lvgl_esp32_drivers)
 project(Peripheral)

@@ -9,11 +9,11 @@
  * CONDITIONS OF ANY KIND, either express or implied.
  */
 
-#include <Arduino.h>
 
-#include <sensor_task.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+
+#include <sensor_task.h>
 
 /**********************
  *  INCLUDES
