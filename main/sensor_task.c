@@ -34,7 +34,7 @@
 #include <robusto_sleep.h>
 
 char * tasks_log_prefix = "Peripheral-task";
-
+robusto_peer_t * central_peer = NULL; 
 
 // Testing
 esp_timer_handle_t periodic_timer;
@@ -377,8 +377,7 @@ void periodic_sensor_test(void *arg)
                           get_sample_value_number(samples,"SOC", "%.1f", 0.1), 
                           get_sample_value_number(samples,"I", "%.3f", 0.001), 
                           get_sample_value_number(samples,"VM", "%.3f", 0.001)); 
-    robusto_peer_t *peer = robusto_peers_find_peer_by_name("Controller");
-    send_message_strings(peer, ROBUSTO_MQTT_SERVICE_ID, 0, message, data_length, NULL);
+    send_message_strings(central_peer, ROBUSTO_MQTT_SERVICE_ID, 0, message, data_length, NULL);
 }
 
 void init_sensor_task()
@@ -387,19 +386,24 @@ void init_sensor_task()
     init_robusto();
    //robusto_register_handler(&do_on_work);
     
-    robusto_peer_t * peer = robusto_add_init_new_peer(local_hosts[2].hostname, local_hosts[2].base_mac_address, robusto_mt_espnow);
+    central_peer = robusto_add_init_new_peer(local_hosts[2].hostname, local_hosts[2].base_mac_address, robusto_mt_espnow);
 
     init_sensors();
     /* Allow for some communication between the peripheral and the controller */
-    vTaskDelay(1000/portTICK_PERIOD_MS);
-
+    while (central_peer->state < PEER_KNOWN_INSECURE) {
+        r_delay(1000);
+        // TODO: Don't wait forever
+    }
+    
+    periodic_sensor_test(NULL);
+/*
     const esp_timer_create_args_t periodic_timer_args = {
             .callback =  &periodic_sensor_test,
             .name = "periodic_query"
     };
 
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
-    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 200000));
-
-    robusto_conductor_client_give_control(peer); 
+    ESP_ERROR_CHECK(esp_timer_start_once(periodic_timer, 1000));
+*/
+    robusto_conductor_client_give_control(central_peer); 
 }
