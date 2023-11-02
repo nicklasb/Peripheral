@@ -377,6 +377,16 @@ void periodic_sensor_test(void *arg)
                           get_sample_value_number(samples,"SOC", "%.1f", 0.1), 
                           get_sample_value_number(samples,"I", "%.3f", 0.001), 
                           get_sample_value_number(samples,"VM", "%.3f", 0.001)); 
+    char * data = robusto_malloc(data_length);
+    memcpy(data, message, data_length);
+    for (int i = 0; i < data_length - 1; i++) {
+        if (data[i] == NULL) {
+            data[i] = "|";
+        }
+
+    }
+    ROB_LOGI(tasks_log_prefix, "Message : %s", data);
+    // rob_log_bit_mesh(ROB_LOG_INFO, tasks_log_prefix, data, data_length);
     send_message_strings(central_peer, ROBUSTO_MQTT_SERVICE_ID, 0, message, data_length, NULL);
 }
 

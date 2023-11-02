@@ -32,6 +32,7 @@ char * get_sample_value_number(struct sensor_samples* samples, char * key, char 
         if (sscanf(raw_value, "%lf", &number_value) > 0) {
             char * result;
             asprintf(&result, format, number_value * factor);
+            ROB_LOGI("robusto_sensors.h", "get_sample_value_number = %s", result);
             return result;  
         }
     } 
